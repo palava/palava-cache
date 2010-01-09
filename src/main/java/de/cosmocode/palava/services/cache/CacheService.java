@@ -41,6 +41,13 @@ public interface CacheService extends Service {
     /**
      * Reads an object from the cache.
      * 
+     * <p>
+     *   <strong>Note:</strong>
+     *   This method automatically casts into the needed
+     *   type. It's in the callers responsibilities that
+     *   no ClassCastException occurs.
+     * </p>
+     * 
      * @param <T> the generic object type
      * @param key the cache key
      * @return a casted instance of T or null, if there was
@@ -50,6 +57,13 @@ public interface CacheService extends Service {
     
     /**
      * Clears an object from the cache by key.
+     * 
+     * <p>
+     *   <strong>Note:</strong>
+     *   This method automatically casts into the needed
+     *   type. It's in the callers responsibilities that
+     *   no ClassCastException occurs.
+     * </p>
      * 
      * @param <T> the generic object type
      * @param key the cache key
