@@ -14,5 +14,9 @@
   		<groupId>de.cosmocode.palava</groupId>
   		<artifactId>palava-core</artifactId>
   	</dependency>
+  	<dependency>
+  		<groupId>de.cosmocode.palava</groupId>
+  		<artifactId>palava-annotations</artifactId>
+  	</dependency>
   </dependencies>
 </project>
