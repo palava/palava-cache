@@ -28,7 +28,7 @@ import de.cosmocode.palava.Service;
  *
  * @author Willi Schoenborn
  */
-public interface CacheService extends Service {
+public interface CacheService {
 
     /**
      * Adds an object to the cache. 
