@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import de.cosmocode.palava.Job;
 import de.cosmocode.palava.Server;
 import de.cosmocode.palava.core.protocol.JSONContent;
-import de.cosmocode.palava.core.protocol.Request;
+import de.cosmocode.palava.core.protocol.Call;
 import de.cosmocode.palava.core.protocol.Response;
 import de.cosmocode.palava.core.session.HttpSession;
 import de.cosmocode.palava.services.cache.CacheService;
@@ -45,7 +45,7 @@ public final class ClearCache implements Job {
     private CacheService cacheService;
     
     @Override
-    public void process(Request request, Response response, HttpSession session, Server server, Map<String, Object> caddy)
+    public void process(Call request, Response response, HttpSession session, Server server, Map<String, Object> caddy)
         throws Exception {
 
         log.info("Clearing cache");
