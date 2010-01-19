@@ -28,12 +28,12 @@ package de.cosmocode.palava.services.cache;
 public enum CacheMode {
 
     /**
-     * Last recently used.
+     * Least recently used.
      */
     LRU,
     
     /**
-     * Last frequently used.
+     * Least frequently used.
      */
     LFU,
     

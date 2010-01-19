@@ -33,4 +33,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Cache {
 
+    CachePolicy cachePolicy() default CachePolicy.SMART;
+    
 }
