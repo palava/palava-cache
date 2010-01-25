@@ -83,7 +83,7 @@ public abstract class CacheServiceTest {
     /**
      * Testing the Clear-Function.
      */
-
+    @Test
     public void testClear() {
         for (int i = 0; i < 10; i++) {
             cacheServiceObj.store(i , "TestEntry");
