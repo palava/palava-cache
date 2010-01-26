@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.cosmocode.palava.core.call.Call;
-import de.cosmocode.palava.core.protocol.Response;
+import de.cosmocode.palava.core.command.Response;
 import de.cosmocode.palava.core.protocol.content.JsonContent;
 import de.cosmocode.palava.core.server.Server;
 import de.cosmocode.palava.core.session.HttpSession;

@@ -21,7 +21,7 @@ package de.cosmocode.palava.services.cache;
 
 import java.io.Serializable;
 
-import de.cosmocode.palava.core.service.Service;
+import de.cosmocode.palava.core.Service;
 
 /**
  * A {@link Service} used to cache objects.
