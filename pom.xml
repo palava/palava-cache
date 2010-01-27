@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.cosmocode.palava.services</groupId>
   <artifactId>palava-cache</artifactId>
-  <name>Palava Cache Module</name>
+  <name>Palava Cache</name>
   <scm>
   	<developerConnection>scm:svn:http://palava.svn.cosmocode.de/palava-cache/trunk</developerConnection>
   </scm>
