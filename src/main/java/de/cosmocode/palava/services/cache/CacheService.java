@@ -1,6 +1,6 @@
 /**
  * palava - a java-php-bridge
- * Copyright (C) 2007  CosmoCode GmbH
+ * Copyright (C) 2007-2010  CosmoCode GmbH
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@ package de.cosmocode.palava.services.cache;
 
 import java.io.Serializable;
 
-import de.cosmocode.palava.core.framework.Service;
+import de.cosmocode.palava.core.Service;
 
 /**
  * A {@link Service} used to cache objects.
