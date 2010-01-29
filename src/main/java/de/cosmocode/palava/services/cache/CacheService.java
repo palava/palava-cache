@@ -27,6 +27,7 @@ import de.cosmocode.palava.core.Service;
  * A {@link Service} used to cache objects.
  *
  * @author Willi Schoenborn
+ * @author Markus Baumann
  */
 public interface CacheService {
 
@@ -35,6 +36,7 @@ public interface CacheService {
      * 
      * @param key the cache key
      * @param value the value being stored
+     * @throws NullPointerException if key is null
      */
     void store(Serializable key, Object value);
     
@@ -52,6 +54,7 @@ public interface CacheService {
      * @param key the cache key
      * @return a casted instance of T or null, if there was
      *         no value cached for the given key
+     * @throws NullPointerException if key is null
      */
     <T> T read(Serializable key);
     
@@ -68,12 +71,12 @@ public interface CacheService {
      * @param <T> the generic object type
      * @param key the cache key
      * @return the object that associated with key or null if there was none
+     * @throws NullPointerException if key is null
      */
     <T> T remove(Serializable key);
     
     /**
      * Clears the cache.
      */
-    void clear();
-    
+    void clear(); 
 }

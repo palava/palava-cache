@@ -48,6 +48,17 @@ public abstract class CacheServiceTest {
     public void before() {
         cacheServiceObj = create();
     }
+    
+    /**
+     * Testing Store-Function.
+     */
+
+    @Test
+    public void testStoreAndRead() {
+        System.out.println("TEST STORE AND READ...");
+        cacheServiceObj.store(1 , "TestEntry");
+        Assert.assertTrue("TestEntry".equals(cacheServiceObj.read(1)));
+    }
 
     /**
      * Testing Store-Function.
@@ -56,28 +67,20 @@ public abstract class CacheServiceTest {
 
     @Test(expected = NullPointerException.class)
     public void testStoreNullPointerException() {
+        System.out.println("TEST STORE NULLPOINTEREXCEPTION...");
         cacheServiceObj.store(null, "TestEntry");
     }
-
-    /**
-     * Testing Store-Function.
-     */
-
-    @Test
-    public void testStoreAndRead() {
-        cacheServiceObj.store(1 , "TestEntry");
-        Assert.assertTrue("TestEntry".equals(cacheServiceObj.read(1)));
-    }
-
+    
     /**
      * Testing Remove-Function.
      */
 
     @Test
     public void testRemove() {
-        cacheServiceObj.store(1 , "TestEntry");
-        Assert.assertTrue("TestEntry".equals(cacheServiceObj.remove(1)));
-        Assert.assertTrue(cacheServiceObj.read(1) == null);
+        System.out.println("TEST REMOVE...");
+        cacheServiceObj.store(2 , "TestEntry");
+        Assert.assertTrue("TestEntry".equals(cacheServiceObj.remove(2)));
+        Assert.assertTrue(cacheServiceObj.read(2) == null);
     }
 
     /**
@@ -85,6 +88,7 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void testClear() {
+        System.out.println("TEST CLEAR...");
         for (int i = 0; i < 10; i++) {
             cacheServiceObj.store(i , "TestEntry");
         }
