@@ -19,43 +19,38 @@
 
 package de.cosmocode.palava.jobs.cache;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-import de.cosmocode.palava.bridge.Server;
+import de.cosmocode.palava.bridge.Content;
 import de.cosmocode.palava.bridge.call.Call;
-import de.cosmocode.palava.bridge.command.Job;
-import de.cosmocode.palava.bridge.command.Response;
+import de.cosmocode.palava.bridge.command.Command;
+import de.cosmocode.palava.bridge.command.CommandException;
 import de.cosmocode.palava.bridge.content.JsonContent;
-import de.cosmocode.palava.bridge.session.HttpSession;
 import de.cosmocode.palava.services.cache.CacheService;
 
 /**
- * 
+ * Clears the cache which is provided by {@link CacheService}.
  *
  * @author Willi Schoenborn
  */
-public final class ClearCache implements Job {
+public final class ClearCache implements Command {
 
-    private static final Logger log = LoggerFactory.getLogger(ClearCache.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ClearCache.class);
 
     @Inject
     private CacheService cacheService;
-    
-    @Override
-    public void process(Call request, Response response, HttpSession session, Server server, Map<String, Object> caddy)
-        throws Exception {
 
-        log.info("Clearing cache");
+    @Override
+    public Content execute(Call call) throws CommandException {
+
+        LOG.info("Clearing cache");
         cacheService.clear();
-        log.info("Cache cleared");
+        LOG.info("Cache cleared");
         
-        response.setContent(JsonContent.EMPTY);
-        
+        return JsonContent.EMPTY;
     }
 
 }
