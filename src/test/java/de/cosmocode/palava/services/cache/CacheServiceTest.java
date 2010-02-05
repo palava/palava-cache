@@ -29,21 +29,19 @@ import org.junit.Test;
  * @author Markus Baumann
  *
  */
-
 public abstract class CacheServiceTest {
 
     private CacheService cacheServiceObj;
+    
     /**
      * Creates new instance of CacheService.
      * @return instance of CacheService 
      */
-
     protected abstract CacheService create();
 
     /**
      * Create instance before testing.
      */
-
     @Before
     public void before() {
         cacheServiceObj = create();
@@ -52,35 +50,49 @@ public abstract class CacheServiceTest {
     /**
      * Testing Store-Function.
      */
-
     @Test
     public void testStoreAndRead() {
-        System.out.println("TEST STORE AND READ...");
         cacheServiceObj.store(1 , "TestEntry");
         Assert.assertTrue("TestEntry".equals(cacheServiceObj.read(1)));
+        Assert.assertNull(cacheServiceObj.read("null"));
     }
 
     /**
      * Testing Store-Function.
      * expecting NullPointerException
      */
-
     @Test(expected = NullPointerException.class)
     public void testStoreNullPointerException() {
-        System.out.println("TEST STORE NULLPOINTEREXCEPTION...");
         cacheServiceObj.store(null, "TestEntry");
+    }
+    
+    /**
+     * Testing Read-Function.
+     * expecting NullPointerException
+     */
+    @Test(expected = NullPointerException.class)
+    public void testReadNullPointerException() {
+        cacheServiceObj.read(null);
     }
     
     /**
      * Testing Remove-Function.
      */
-
     @Test
     public void testRemove() {
-        System.out.println("TEST REMOVE...");
-        cacheServiceObj.store(2 , "TestEntry");
-        Assert.assertTrue("TestEntry".equals(cacheServiceObj.remove(2)));
-        Assert.assertTrue(cacheServiceObj.read(2) == null);
+        cacheServiceObj.store(1 , "TestEntry");
+        Assert.assertTrue("TestEntry".equals(cacheServiceObj.remove(1)));
+        Assert.assertTrue(cacheServiceObj.read(1) == null);
+        Assert.assertNull(cacheServiceObj.remove("null"));
+    }
+    
+    /**
+     * Testing Remove-Function.
+     * Expecting NullPointerException
+     */
+    @Test(expected = NullPointerException.class)
+    public void testRemoveNullPointerException() {
+        cacheServiceObj.remove(null);
     }
 
     /**
@@ -88,7 +100,6 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void testClear() {
-        System.out.println("TEST CLEAR...");
         for (int i = 0; i < 10; i++) {
             cacheServiceObj.store(i , "TestEntry");
         }
