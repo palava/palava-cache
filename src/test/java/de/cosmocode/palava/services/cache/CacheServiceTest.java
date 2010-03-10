@@ -19,6 +19,9 @@
 
 package de.cosmocode.palava.services.cache;
 
+import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +30,7 @@ import org.junit.Test;
  * Abstract test-class for CacheService.
  * 
  * @author Markus Baumann
+ * @author Oliver Lorenz (everything with maxAge)
  *
  */
 public abstract class CacheServiceTest {
@@ -45,6 +49,91 @@ public abstract class CacheServiceTest {
     @Before
     public void before() {
         cacheServiceObj = create();
+    }
+    
+    /**
+     * Tests {@link CacheService#setMaxAge(long, TimeUnit)} with a negative value.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void setMaxAgeTimeUnitNegative() {
+        cacheServiceObj.setMaxAge(-1, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Tests {@link CacheService#setMaxAge(long, TimeUnit)} with a TimeUnit of null.
+     */
+    @Test(expected = NullPointerException.class)
+    public void setMaxAgeTimeUnitNull() {
+        cacheServiceObj.setMaxAge(10, null);
+    }
+    
+    /**
+     * Tests {@link CacheService#setMaxAge(long, TimeUnit)}.
+     */
+    @Test
+    public void setMaxAgeTimeUnit() {
+        final TimeUnit unit = TimeUnit.HOURS;
+        cacheServiceObj.setMaxAge(5, unit);
+        Assert.assertEquals(5, cacheServiceObj.getMaxAge(unit));
+    }
+    
+    /**
+     * Tests {@link CacheService#setMaxAge(long)} with a negative value.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void setMaxAgeNegative() {
+        cacheServiceObj.setMaxAge(-1);
+    }
+    
+    /**
+     * Tests {@link CacheService#setMaxAge(long)}.
+     */
+    @Test
+    public void setMaxAge() {
+        cacheServiceObj.setMaxAge(30);
+        Assert.assertEquals(30, cacheServiceObj.getMaxAge());
+    }
+    
+    /**
+     * Tests {@link CacheService#store(java.io.Serializable, Object, long, TimeUnit)}
+     * with a max age of 1 second and waits till the time is expired.
+     * @throws InterruptedException if the Thread.sleep is interrupted
+     */
+    @Test
+    public void testStoreWithMaxAge() throws InterruptedException {
+        final int maxAge = 1;
+        final TimeUnit unit = TimeUnit.SECONDS;
+        final Serializable key = 1;
+        
+        cacheServiceObj.store(key, "TestEntry", maxAge, unit);
+        Thread.sleep(unit.toMillis(maxAge) + 1000);
+        Assert.assertNull("should be expired, but is not", cacheServiceObj.read(key));
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)} with a negative max age.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testStoreMaxAgeNegative() {
+        cacheServiceObj.store(1, "test", -1, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)} with a null key.
+     * Expects a NullPointerException.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testStoreMaxAgeKeyNull() {
+        cacheServiceObj.store(null, "test", 10, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)} with a null TimeUnit.
+     * Expects a NullPointerException.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testStoreMaxAgeTimeUnitNull() {
+        cacheServiceObj.store(1, "test", 10, null);
     }
     
     /**
