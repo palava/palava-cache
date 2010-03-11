@@ -17,14 +17,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package de.cosmocode.palava.services.cache;
+package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+
+import de.cosmocode.junit.UnitProvider;
 
 /**
  * Abstract test-class for CacheService.
@@ -33,30 +34,14 @@ import org.junit.Test;
  * @author Oliver Lorenz (everything with maxAge)
  *
  */
-public abstract class CacheServiceTest {
+public abstract class CacheServiceTest implements UnitProvider<CacheService> {
 
-    private CacheService cacheServiceObj;
-    
-    /**
-     * Creates new instance of CacheService.
-     * @return instance of CacheService 
-     */
-    protected abstract CacheService create();
-
-    /**
-     * Create instance before testing.
-     */
-    @Before
-    public void before() {
-        cacheServiceObj = create();
-    }
-    
     /**
      * Tests {@link CacheService#setMaxAge(long, TimeUnit)} with a negative value.
      */
     @Test(expected = IllegalArgumentException.class)
     public void setMaxAgeTimeUnitNegative() {
-        cacheServiceObj.setMaxAge(-1, TimeUnit.SECONDS);
+        unit().setMaxAge(-1, TimeUnit.SECONDS);
     }
     
     /**
@@ -64,7 +49,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void setMaxAgeTimeUnitNull() {
-        cacheServiceObj.setMaxAge(10, null);
+        unit().setMaxAge(10, null);
     }
     
     /**
@@ -72,9 +57,10 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void setMaxAgeTimeUnit() {
-        final TimeUnit unit = TimeUnit.HOURS;
-        cacheServiceObj.setMaxAge(5, unit);
-        Assert.assertEquals(5, cacheServiceObj.getMaxAge(unit));
+        final TimeUnit timeUnit = TimeUnit.HOURS;
+        final CacheService unit = unit();
+        unit.setMaxAge(5, timeUnit);
+        Assert.assertEquals(5, unit.getMaxAge(timeUnit));
     }
     
     /**
@@ -82,7 +68,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void setMaxAgeNegative() {
-        cacheServiceObj.setMaxAge(-1);
+        unit().setMaxAge(-1);
     }
     
     /**
@@ -90,8 +76,9 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void setMaxAge() {
-        cacheServiceObj.setMaxAge(30);
-        Assert.assertEquals(30, cacheServiceObj.getMaxAge());
+        final CacheService unit = unit();
+        unit.setMaxAge(30);
+        Assert.assertEquals(30, unit.getMaxAge());
     }
     
     /**
@@ -102,12 +89,13 @@ public abstract class CacheServiceTest {
     @Test
     public void testStoreWithMaxAge() throws InterruptedException {
         final int maxAge = 1;
-        final TimeUnit unit = TimeUnit.SECONDS;
+        final TimeUnit timeUnit = TimeUnit.SECONDS;
         final Serializable key = 1;
+        final CacheService unit = unit();
         
-        cacheServiceObj.store(key, "TestEntry", maxAge, unit);
-        Thread.sleep(unit.toMillis(maxAge) + 1000);
-        Assert.assertNull("should be expired, but is not", cacheServiceObj.read(key));
+        unit.store(key, "TestEntry", maxAge, timeUnit);
+        Thread.sleep(timeUnit.toMillis(maxAge) + 1000);
+        Assert.assertNull("should be expired, but is not", unit.read(key));
     }
 
     /**
@@ -115,7 +103,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testStoreMaxAgeNegative() {
-        cacheServiceObj.store(1, "test", -1, TimeUnit.SECONDS);
+        unit().store(1, "test", -1, TimeUnit.SECONDS);
     }
 
     /**
@@ -124,7 +112,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void testStoreMaxAgeKeyNull() {
-        cacheServiceObj.store(null, "test", 10, TimeUnit.SECONDS);
+        unit().store(null, "test", 10, TimeUnit.SECONDS);
     }
     
     /**
@@ -133,7 +121,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void testStoreMaxAgeTimeUnitNull() {
-        cacheServiceObj.store(1, "test", 10, null);
+        unit().store(1, "test", 10, null);
     }
     
     /**
@@ -141,9 +129,10 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void testStoreAndRead() {
-        cacheServiceObj.store(1 , "TestEntry");
-        Assert.assertTrue("TestEntry".equals(cacheServiceObj.read(1)));
-        Assert.assertNull(cacheServiceObj.read("null"));
+        final CacheService unit = unit();
+        unit.store(1 , "TestEntry");
+        Assert.assertTrue("TestEntry".equals(unit.read(1)));
+        Assert.assertNull(unit.read("null"));
     }
 
     /**
@@ -152,7 +141,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void testStoreNullPointerException() {
-        cacheServiceObj.store(null, "TestEntry");
+        unit().store(null, "TestEntry");
     }
     
     /**
@@ -161,7 +150,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void testReadNullPointerException() {
-        cacheServiceObj.read(null);
+        unit().read(null);
     }
     
     /**
@@ -169,10 +158,11 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void testRemove() {
-        cacheServiceObj.store(1 , "TestEntry");
-        Assert.assertTrue("TestEntry".equals(cacheServiceObj.remove(1)));
-        Assert.assertTrue(cacheServiceObj.read(1) == null);
-        Assert.assertNull(cacheServiceObj.remove("null"));
+        final CacheService unit = unit();
+        unit.store(1 , "TestEntry");
+        Assert.assertTrue("TestEntry".equals(unit.remove(1)));
+        Assert.assertTrue(unit.read(1) == null);
+        Assert.assertNull(unit.remove("null"));
     }
     
     /**
@@ -181,7 +171,7 @@ public abstract class CacheServiceTest {
      */
     @Test(expected = NullPointerException.class)
     public void testRemoveNullPointerException() {
-        cacheServiceObj.remove(null);
+        unit().remove(null);
     }
 
     /**
@@ -189,12 +179,13 @@ public abstract class CacheServiceTest {
      */
     @Test
     public void testClear() {
+        final CacheService unit = unit();
         for (int i = 0; i < 10; i++) {
-            cacheServiceObj.store(i , "TestEntry");
+            unit.store(i , "TestEntry");
         }
-        cacheServiceObj.clear();
+        unit.clear();
         for (int j = 0; j < 10; j++) {
-            Assert.assertTrue(cacheServiceObj.read(j) == null);
+            Assert.assertTrue(unit.read(j) == null);
         }
     }
 }

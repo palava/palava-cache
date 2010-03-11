@@ -17,40 +17,41 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package de.cosmocode.palava.jobs.cache;
+package de.cosmocode.palava.cache;
+
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
-import de.cosmocode.palava.bridge.Content;
-import de.cosmocode.palava.bridge.call.Call;
-import de.cosmocode.palava.bridge.command.Command;
-import de.cosmocode.palava.bridge.command.CommandException;
-import de.cosmocode.palava.bridge.content.JsonContent;
-import de.cosmocode.palava.services.cache.CacheService;
+import de.cosmocode.palava.ipc.IpcCall;
+import de.cosmocode.palava.ipc.IpcCommand;
+import de.cosmocode.palava.ipc.IpcCommandExecutionException;
 
 /**
  * Clears the cache which is provided by {@link CacheService}.
  *
  * @author Willi Schoenborn
  */
-public final class ClearCache implements Command {
+public final class Clear implements IpcCommand {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClearCache.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Clear.class);
 
+    private final CacheService service;
+    
     @Inject
-    private CacheService cacheService;
+    public Clear(CacheService service) {
+        this.service = Preconditions.checkNotNull(service, "Service");
+    }
 
     @Override
-    public Content execute(Call call) throws CommandException {
-
+    public void execute(IpcCall call, Map<String, Object> result) throws IpcCommandExecutionException {
         LOG.info("Clearing cache");
-        cacheService.clear();
+        service.clear();
         LOG.info("Cache cleared");
-        
-        return JsonContent.EMPTY;
     }
 
 }
