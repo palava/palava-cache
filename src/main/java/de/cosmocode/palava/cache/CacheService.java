@@ -104,7 +104,7 @@ public interface CacheService {
      * <p> Adds an object to the cache.
      * </p> 
      * <p> The maxAge parameter determines the maximum age that the value should live.
-     * This means that once the maxAge has passed a {@link #read(Serializable))}
+     * This means that once the maxAge has passed, a {@link #read(Serializable))}
      * with the given key returns null until a new value has been stored for the key.
      * </p>
      * 
