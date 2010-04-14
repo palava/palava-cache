@@ -22,10 +22,19 @@ package de.cosmocode.palava.cache;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
-import de.cosmocode.palava.core.Service;
-
 /**
- * A {@link Service} used to cache objects.
+ * <p> A Service used to cache objects.
+ * It can be configured with a maxAge
+ * so that cached objects expire after the given amount of time.
+ * </p>
+ * Common methods:
+ * <ul>
+ *   <li>{@link #store(Serializable, Object)} - stores a key to an object</li>
+ *   <li>{@link #store(Serializable, Object, long, TimeUnit)}
+ *       - stores a key to an object with a maximum age to live</li>
+ *   <li>{@link #read(Serializable)} - reads an object from the cache</li>
+ *   <li>{@link #remove(Serializable)} - removes an object from the cache</li>
+ * </ul>
  *
  * @author Willi Schoenborn
  * @author Markus Baumann
