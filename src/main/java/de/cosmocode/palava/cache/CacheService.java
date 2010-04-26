@@ -20,18 +20,10 @@ import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p> A Service used to cache objects.
- * It can be configured with a maxAge
- * so that cached objects expire after the given amount of time.
+ * <p>
+ *   A Service used to cache objects. It can be configured with a maxAge
+ *   so that cached objects expire after the given amount of time.
  * </p>
- * Common methods:
- * <ul>
- *   <li>{@link #store(Serializable, Object)} - stores a key to an object</li>
- *   <li>{@link #store(Serializable, Object, long, TimeUnit)}
- *       - stores a key to an object with a maximum age to live</li>
- *   <li>{@link #read(Serializable)} - reads an object from the cache</li>
- *   <li>{@link #remove(Serializable)} - removes an object from the cache</li>
- * </ul>
  *
  * @author Willi Schoenborn
  * @author Markus Baumann
@@ -43,20 +35,16 @@ public interface CacheService {
     
     TimeUnit DEFAULT_MAX_AGE_TIMEUNIT = TimeUnit.DAYS;
     
-    String MAX_AGE_NEGATIVE = "MaxAge is less than zero, must be non-negative";
-    
     /**
-     * <p> Returns the max age for every stored item, in seconds.
-     * </p>
+     * Returns the max age for every stored item, in seconds.
      *  
      * @return the max age in seconds
      */
     long getMaxAge();
     
     /**
-     * <p> Returns the default max age for every stored item.
+     * Returns the default max age for every stored item.
      * The result is converted using the given TimeUnit.
-     * </p>
      * 
      * @param unit the TimeUnit in which the max Age value is returned
      * @return the max age, in the given TimeUnit
@@ -65,9 +53,8 @@ public interface CacheService {
     long getMaxAge(TimeUnit unit);
     
     /**
-     * <p> Sets the maximum age for the store method, in seconds.
-     * This method calls {@link #setMaxAge(long, TimeUnit)} with {@code TimeUnit.SECONDS}.
-     * </p>
+     * Sets the maximum age for the store method, in seconds.
+     * This method calls {@link #setMaxAge(long, TimeUnit)} with {@link TimeUnit#SECONDS}.
      * 
      * @param maxAgeSeconds the maximum age of every stored item
      * @throws IllegalArgumentException if maxAge is negative
@@ -76,18 +63,22 @@ public interface CacheService {
     void setMaxAge(long maxAgeSeconds);
     
     /**
-     * <p> Sets the maximum age for the store method.
-     * The given value is then used as a default for {@link #store(Serializable, Object)}.
-     * This can be called in a configuration stage to set an explicit maxAge.
+     * <p>
+     *   Sets the maximum age for the store method.
+     *   The given value is then used as a default for {@link #store(Serializable, Object)}.
+     *   This can be called in a configuration stage to set an explicit maxAge.
      * </p>
-     * <p> A negative maxAge is illegal and results in an IllegalArgumentException.
-     * If eternal caching is intended use {@link #DEFAULT_MAX_AGE} and {@link #DEFAULT_MAX_AGE_TIMEUNIT}.
+     * <p>
+     *   A negative maxAge is illegal and results in an IllegalArgumentException.
+     *   If eternal caching is intended use {@link #DEFAULT_MAX_AGE} and {@link #DEFAULT_MAX_AGE_TIMEUNIT}.
      * </p>
-     * <p> The default max age is DEFAULT_MAX_AGE with DEFAULT_MAX_AGE_TIMEUNIT,
-     * which is equivalent to an eternal caching.
+     * <p>
+     *   The default max age is DEFAULT_MAX_AGE with DEFAULT_MAX_AGE_TIMEUNIT,
+     *   which is equivalent to an eternal caching.
      * </p>
-     * <p> Note: {@link #store(Serializable, Object, long, TimeUnit)} overrides the default value
-     * with its given parameters. 
+     * <p>
+     *   Note: {@link #store(Serializable, Object, long, TimeUnit)} overrides the default value
+     *   with its given parameters. 
      * </p>
      * 
      * @param maxAge the new default maxAge for every stored item
@@ -107,11 +98,12 @@ public interface CacheService {
     void store(Serializable key, Object value);
     
     /**
-     * <p> Adds an object to the cache.
-     * </p> 
-     * <p> The maxAge parameter determines the maximum age that the value should live.
-     * This means that once the maxAge has passed, a {@link #read(Serializable))}
-     * with the given key returns null until a new value has been stored for the key.
+     * Adds an object to the cache.
+     * 
+     * <p>
+     *   The maxAge parameter determines the maximum age that the value should live.
+     *   This means that once the maxAge has passed, a {@link #read(Serializable))}
+     *   with the given key returns null until a new value has been stored for the key.
      * </p>
      * 
      * @param key the cache key
@@ -137,6 +129,7 @@ public interface CacheService {
      * @return a casted instance of T or null, if there was
      *         no value cached for the given key or the value has expired its max age
      * @throws NullPointerException if key is null
+     * @throws ClassCastException if the found value couln't be cast into T
      */
     <T> T read(Serializable key);
     
