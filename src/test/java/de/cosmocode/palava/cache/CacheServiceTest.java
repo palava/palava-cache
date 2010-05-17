@@ -79,6 +79,25 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     }
     
     /**
+     * Tests {@link CacheService#store(java.io.Serializable, Object)}
+     * after calling {@link CacheService#setMaxAge(long, java.util.concurrent.TimeUnit)}
+     * with a max age of 1 second and waits till the time is expired.
+     * @throws InterruptedException if the Thread.sleep is interrupted
+     */
+    @Test
+    public void testStoreWithSetMaxAge() throws InterruptedException {
+        final int maxAge = 1;
+        final TimeUnit timeUnit = TimeUnit.SECONDS;
+        final Serializable key = 1;
+        final CacheService unit = unit();
+
+        unit.setMaxAge(maxAge, timeUnit);
+        unit.store(key, "TestEntry");
+        Thread.sleep(timeUnit.toMillis(maxAge) + 1000);
+        Assert.assertNull("should be expired, but is not", unit.read(key));
+    }
+
+    /**
      * Tests {@link CacheService#store(java.io.Serializable, Object, long, TimeUnit)}
      * with a max age of 1 second and waits till the time is expired.
      * @throws InterruptedException if the Thread.sleep is interrupted
@@ -89,7 +108,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         final TimeUnit timeUnit = TimeUnit.SECONDS;
         final Serializable key = 1;
         final CacheService unit = unit();
-        
+
         unit.store(key, "TestEntry", maxAge, timeUnit);
         Thread.sleep(timeUnit.toMillis(maxAge) + 1000);
         Assert.assertNull("should be expired, but is not", unit.read(key));
@@ -130,6 +149,18 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         unit.store(1 , "TestEntry");
         Assert.assertTrue("TestEntry".equals(unit.read(1)));
         Assert.assertNull(unit.read("null"));
+    }
+
+    /**
+     * Testing Store-Function with a non-serializable value.
+     */
+    @Test
+    public void testStoreAndReadObject() {
+        final Object value = new Object();
+        final CacheService unit = unit();
+
+        unit.store(1 , value);
+        Assert.assertEquals(value, unit.read(1));
     }
 
     /**
