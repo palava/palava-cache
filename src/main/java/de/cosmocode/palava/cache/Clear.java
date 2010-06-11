@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import de.cosmocode.palava.ipc.IpcCall;
 import de.cosmocode.palava.ipc.IpcCommand;
@@ -33,6 +34,7 @@ import de.cosmocode.palava.ipc.IpcCommandExecutionException;
  *
  * @author Willi Schoenborn
  */
+@Singleton
 public final class Clear implements IpcCommand {
 
     private static final Logger LOG = LoggerFactory.getLogger(Clear.class);
