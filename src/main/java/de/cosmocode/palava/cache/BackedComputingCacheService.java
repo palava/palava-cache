@@ -187,7 +187,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         final Future<?> future = futures.get(key);
         if (future == null) {
             LOG.trace("No running computation for key {}", key);
-            return service.read(key);
+            return service.<T>read(key);
         } else {
             try {
                 LOG.debug("Waiting for {} to finish computation", future);
@@ -195,7 +195,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 final T value = (T) future.get();
                 return value;
             } catch (InterruptedException e) {
-                return strategy.handle(e);
+                return strategy.<T>handle(e);
             } catch (CancellationException e) {
                 LOG.trace("{} has been cancelled during read", future);
                 throw e;
@@ -209,7 +209,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         cancelIfRunning(key);
-        return service.remove(key);
+        return service.<T>remove(key);
     }
 
     @Override
