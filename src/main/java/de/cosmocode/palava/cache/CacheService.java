@@ -110,7 +110,8 @@ public interface CacheService {
      * @param value the value being stored
      * @param maxAge the maximum age that the stored value should be cached, in `maxAgeUnit`
      * @param maxAgeUnit the TimeUnit of the maxAge (like DAYS, SECONDS, etc.)
-     * @throws NullPointerException if key is null
+     * @throws NullPointerException if key or maxAgeUnit is null
+     * @throws IllegalArgumentException if maxAge is negative
      */
     void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit);
     
