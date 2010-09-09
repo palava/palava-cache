@@ -21,11 +21,18 @@ import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+/**
+ * Reusable constant {@link CancelStrategy} implementations. 
+ *
+ * @since 2.4
+ * @author Willi Schoenborn
+ */
+public enum CancelStrategies implements CancelStrategy {
 
-enum Cancelling implements CancelStrategy {
-
+    /**
+     * Cancels {@link Future}s by permitting {@link Thread#interrupt()}. 
+     * Handles {@link InterruptedException} by ignoring them and return {@code null}.
+     */
     INTERRUPT {
         
         @Override
@@ -35,12 +42,15 @@ enum Cancelling implements CancelStrategy {
         
         @Override
         public <T> T handle(InterruptedException e) {
-            // TODO use another exception type
-            throw new IllegalStateException(e);
+            return null;
         }
         
     },
     
+    /**
+     * Cancels {@link Future}s by waiting for the computation to finish.
+     * Handles {@link InterruptedException} by throwing an {@link AssertionError}.
+     */
     WAIT {
         
         @Override
@@ -50,8 +60,7 @@ enum Cancelling implements CancelStrategy {
         
         @Override
         public <T> T handle(InterruptedException e) {
-            // TODO log?!
-            return null;
+            throw new AssertionError(e);
         }
         
     };
@@ -65,6 +74,12 @@ enum Cancelling implements CancelStrategy {
         }
     }
     
+    /**
+     * Cancel the given future.
+     * 
+     * @since 2.4
+     * @param future the non-null future to be cancelled
+     */
     protected abstract void doCancel(@Nonnull Future<?> future);
     
 }

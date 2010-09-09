@@ -20,10 +20,33 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
+/**
+ * A strategy pattern do specify the way {@link ComputingCacheService}s
+ * handle cancelling of running computations.
+ *
+ * @since 2.4
+ * @author Willi Schoenborn
+ */
 public interface CancelStrategy {
 
+    /**
+     * Cancels the given future.
+     * 
+     * @since 2.4
+     * @param future the future to be cancelled (may be null)
+     */
     void cancel(@Nullable Future<?> future);
     
+    /**
+     * Handles the occured {@link InterruptedException} in either
+     * throwing another exception or returning a result
+     * which will be passed to the caller of {@link ComputingCacheService#read(Serializable)}.
+     * 
+     * @since 2.4
+     * @param <T> the generic result type
+     * @param e the exception to be handled
+     * @return the result
+     */
     <T> T handle(InterruptedException e);
     
 }

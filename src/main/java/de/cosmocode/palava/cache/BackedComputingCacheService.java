@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ComputationException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.AbstractFuture;
@@ -51,17 +50,22 @@ final class BackedComputingCacheService implements ComputingCacheService {
     
     private final CacheService service;
     
-    private CancelStrategy strategy = Cancelling.WAIT;
+    private CancelStrategy strategy = CancelStrategies.WAIT;
     
     @Inject
     public BackedComputingCacheService(CacheService service) {
         this.service = Preconditions.checkNotNull(service, "Service");
     }
 
+    @Inject(optional = true)
+    void setStrategy(CancelStrategy strategy) {
+        this.strategy = Preconditions.checkNotNull(strategy, "Strategy");
+    }
+    
     private void cancelIfRunning(Serializable key) {
         final Future<?> future = futures.get(key);
         if (future == null) {
-            // the strategy could handle null, but we don't want to log null
+            // the strategy could handle null, but we don't want to log that case
             return;
         } else {
             LOG.debug("Cancelling running computation: {}", future);
@@ -69,6 +73,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         }
     }
 
+    @Override
     public long getMaxAge() {
         return getMaxAge(TimeUnit.SECONDS);
     }
@@ -106,12 +111,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
     }
 
     @Override
-    public void store(Serializable key, Callable<?> callable) {
+    public void store(Serializable key, Callable<?> callable) throws ExecutionException {
         store(key, callable, getMaxAge(), TimeUnit.SECONDS);
     }
     
     @Override
-    public void store(Serializable key, Callable<?> callable, long maxAge, TimeUnit maxAgeUnit) {
+    public void store(Serializable key, Callable<?> callable, long maxAge, TimeUnit maxAgeUnit) 
+        throws ExecutionException {
+        
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkNotNull(callable, "Callable");
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
@@ -119,7 +126,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
         
         cancelIfRunning(key);
         
-        final RunnableFuture<Object> future = new RemovingFuture(key, callable, maxAge, maxAgeUnit);
+        final ThrowingRunnableFuture<Object, ExecutionException> future;
+        future = new RemovingFuture(key, callable, maxAge, maxAgeUnit);
         
         // as soon as the future is in there, other clients can request and wait for the computation
         // to finish
@@ -137,7 +145,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
      * @since 2.4
      * @author Willi Schoenborn
      */
-    private final class RemovingFuture extends AbstractFuture<Object> implements RunnableFuture<Object> {
+    private final class RemovingFuture extends AbstractFuture<Object> 
+        implements ThrowingRunnableFuture<Object, ExecutionException> {
         
         private final Serializable key;
         private final Callable<?> callable;
@@ -152,7 +161,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         }
 
         @Override
-        public void run() {
+        public void run() throws ExecutionException {
             if (isCancelled())  {
                 LOG.debug("{} has been cancelled before running", this);
             } else {
@@ -162,11 +171,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
                     LOG.trace("Computed value {}", value);
                     service.store(key, value, maxAge, maxAgeUnit);
                     set(value);
+                } catch (ExecutionException e) {
+                    setException(e);
+                    throw e;
                     /* CHECKSTYLE:OFF */
                 } catch (Exception e) {
                     /* CHECKSTYLE:ON */
                     setException(e);
-                    throw new ComputationException(e);
+                    throw new ExecutionException(e);
                 } finally {
                     futures.remove(key);
                 }
@@ -175,8 +187,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         
         @Override
         public String toString() {
-            // TODO define better toString
-            return key + " => " + callable;
+            return callable.toString();
         }
         
     }
@@ -198,7 +209,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 return strategy.<T>handle(e);
             } catch (CancellationException e) {
                 LOG.trace("{} has been cancelled during read", future);
-                throw e;
+                return service.<T>read(key);
             } catch (ExecutionException e) {
                 throw Throwables.propagate(e.getCause());
             }
@@ -214,12 +225,16 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public void clear() {
+        // cancel all pending and running computations
         final Collection<Future<?>> toBeCancelled = Lists.newArrayList(futures.values());
         futures.values().removeAll(toBeCancelled);
         
         for (Future<?> future : toBeCancelled) {
             strategy.cancel(future);
         }
+
+        // clear all computed values
+        service.clear();
     }
 
 }

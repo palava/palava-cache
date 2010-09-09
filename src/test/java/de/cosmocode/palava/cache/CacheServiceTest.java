@@ -213,7 +213,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         }
         unit.clear();
         for (int j = 0; j < 10; j++) {
-            Assert.assertTrue(unit.read(j) == null);
+            Assert.assertSame(null, unit.read(j));
         }
     }
 }
