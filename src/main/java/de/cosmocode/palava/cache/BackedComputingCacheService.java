@@ -58,7 +58,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
     public BackedComputingCacheService(CacheService service) {
         this.service = Preconditions.checkNotNull(service, "Service");
         
-        final MapMaker maker = new MapMaker();
+        // weak value should remove empty queues from the map
+        final MapMaker maker = new MapMaker().weakValues();
         this.computations = maker.makeComputingMap(new Function<Serializable, Queue<ValueFuture<Object>>>() {
             
             @Override
@@ -161,10 +162,6 @@ final class BackedComputingCacheService implements ComputingCacheService {
             future.setException(e);
         } finally {
             futures.remove(future);
-            // TODO make threadsafe
-            if (futures.isEmpty()) {
-                computations.remove(key);
-            }
         }
         
         try {
@@ -221,11 +218,6 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 future.set(null);
                 // futures in concurrent, so this should work
                 futures.remove(future);
-                computations.remove(null, null);
-                // TODO make threadsafe
-                if (futures.isEmpty()) {
-                    computations.remove(key);
-                }
             }
             // make sure the underlying cache removes any pre-computed value
             return service.<T>remove(key);
