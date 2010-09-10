@@ -30,8 +30,8 @@ public abstract class ComputingCacheServiceTest extends CacheServiceTest {
     @Test
     public void simpleComputeAndStore() throws CancellationException, ExecutionException {
         final ComputingCacheService unit = unit();
-        unit.computeAndStore("key", Callables.returning("value"));
-        Assert.assertSame("value", unit.read("key"));
+        unit.computeAndStore("computing", Callables.returning("computed-value"));
+        Assert.assertSame("computed-value", unit.read("computing"));
     }
     
 }

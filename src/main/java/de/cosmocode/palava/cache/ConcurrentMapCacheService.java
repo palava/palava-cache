@@ -20,6 +20,9 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
 
@@ -30,6 +33,8 @@ import com.google.common.collect.MapMaker;
  * @author Willi Schoenborn
  */
 final class ConcurrentMapCacheService implements CacheService {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentMapCacheService.class);
 
     /**
      * A map value which holds it's age.
@@ -103,7 +108,11 @@ final class ConcurrentMapCacheService implements CacheService {
     public <T> T read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         final AgingEntry entry = cache.get(key);
-        if (entry == null || entry.getAge(TimeUnit.SECONDS) > maxAgeInSeconds) {
+        if (entry == null) {
+            LOG.trace("No entry found");
+            return null;
+        } else if (entry.getAge(TimeUnit.SECONDS) > maxAgeInSeconds) {
+            LOG.trace("Entry found but was too old");
             return null;
         } else {
             @SuppressWarnings("unchecked")

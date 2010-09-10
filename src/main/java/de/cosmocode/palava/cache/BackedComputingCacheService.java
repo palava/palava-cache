@@ -106,7 +106,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         try {
             computeAndStore(key, Callables.returning(value), maxAge, maxAgeUnit);
         } catch (ExecutionException e) {
-            LOG.warn("Exception during storing constant value {} for key {}", value, key);
+            LOG.warn("Exception while storing key {} to value {}", key, value);
         }
     }
 
@@ -135,23 +135,27 @@ final class BackedComputingCacheService implements ComputingCacheService {
             LOG.trace("{} has already finished", future);
         } else {
             try {
-                final V computed = callable.call();
+                final V value = callable.call();
                 if (future.isDone()) {
                     LOG.debug("Another computation was faster and already computed a value for {}", key);
                 } else {
-                    future.set(computed);
+                    LOG.trace("Computed value '{}' for key '{}'", value, key);
+                    future.set(value);
                     for (ValueFuture<Object> other : futures) {
                         if (other == future) {
                             // every computation after this is newer
                             break;
                         } else if (other.isDone()) {
-                            // skip finished computations
+                            LOG.trace("Skipping finished computation: {}", other);
                             continue;
                         } else {
                             // make older and running computations use my computed value
-                            other.set(computed);
+                            LOG.trace("Setting faster computed value '{}' on {}", value, other);
+                            other.set(value);
                         }
                     }
+                    LOG.trace("Storing '{}' => '{}' in underlying store", key, value);
+                    service.store(key, value, maxAge, maxAgeUnit);
                 }
             /* CHECKSTYLE:OFF */
             } catch (Exception e) {
@@ -178,6 +182,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         final List<ValueFuture<Object>> futures = computations.get(key);
         
         if (futures.isEmpty()) {
+            LOG.trace("Reading pre-computed value for {} from underlying cache", key);
             // no running computation, the easy part
             return service.<T>read(key);
         } else {
