@@ -17,23 +17,26 @@
 package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.AbstractFuture;
+import com.google.common.collect.MapMaker;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Callables;
+import com.google.common.util.concurrent.ValueFuture;
 import com.google.inject.Inject;
 
 /**
@@ -44,33 +47,26 @@ import com.google.inject.Inject;
  */
 final class BackedComputingCacheService implements ComputingCacheService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BackedComputingCacheService.class);
-
-    private final ConcurrentMap<Serializable, Future<?>> futures = Maps.newConcurrentMap();
+    static final Logger LOG = LoggerFactory.getLogger(BackedComputingCacheService.class);
     
     private final CacheService service;
-    
-    private CancelStrategy strategy = CancelStrategies.WAIT;
+
+    private final ConcurrentMap<Serializable, List<ValueFuture<Object>>> computations;
     
     @Inject
     public BackedComputingCacheService(CacheService service) {
         this.service = Preconditions.checkNotNull(service, "Service");
-    }
-
-    @Inject(optional = true)
-    void setStrategy(CancelStrategy strategy) {
-        this.strategy = Preconditions.checkNotNull(strategy, "Strategy");
-    }
-    
-    private void cancelIfRunning(Serializable key) {
-        final Future<?> future = futures.get(key);
-        if (future == null) {
-            // the strategy could handle null, but we don't want to log that case
-            return;
-        } else {
-            LOG.debug("Cancelling running computation: {}", future);
-            strategy.cancel(future);
-        }
+        
+        // soft values should remove obsolete lists
+        final MapMaker maker = new MapMaker().softValues();
+        this.computations = maker.makeComputingMap(new Function<Serializable, List<ValueFuture<Object>>>() {
+            
+            @Override
+            public List<ValueFuture<Object>> apply(Serializable from) {
+                return new CopyOnWriteArrayList<ValueFuture<Object>>();
+            }
+            
+        });
     }
 
     @Override
@@ -106,112 +102,100 @@ final class BackedComputingCacheService implements ComputingCacheService {
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        cancelIfRunning(key);
-        service.store(key, value, maxAge, maxAgeUnit);
+        
+        try {
+            computeAndStore(key, Callables.returning(value), maxAge, maxAgeUnit);
+        } catch (ExecutionException e) {
+            LOG.warn("Exception during storing constant value {} for key {}", value, key);
+        }
     }
 
     @Override
-    public void store(Serializable key, Callable<?> callable) throws ExecutionException {
-        store(key, callable, getMaxAge(), TimeUnit.SECONDS);
+    public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
+        return computeAndStore(key, callable, getMaxAge(), TimeUnit.SECONDS);
     }
     
     @Override
-    public void store(Serializable key, Callable<?> callable, long maxAge, TimeUnit maxAgeUnit) 
-        throws ExecutionException {
+    public <V> V computeAndStore(Serializable key, final Callable<? extends V> callable, 
+            long maxAge, TimeUnit maxAgeUnit) throws ExecutionException {
         
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkNotNull(callable, "Callable");
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        
-        cancelIfRunning(key);
-        
-        final ThrowingRunnableFuture<Object, ExecutionException> future;
-        future = new RemovingFuture(key, callable, maxAge, maxAgeUnit);
-        
-        // as soon as the future is in there, other clients can request and wait for the computation
-        // to finish
-        futures.put(key, future);
-        
-        // make sure it's placed in the map and accessible before we actually start computing
-        future.run();
-    }
-    
-    /**
-     * A custom {@link RunnableFuture} which removes itself from {@link BackedComputingCacheService#futures}
-     * as soon as the underlying {@link Callable} finishes computation, either successfully or
-     * by throwing an exception.
-     *
-     * @since 2.4
-     * @author Willi Schoenborn
-     */
-    private final class RemovingFuture extends AbstractFuture<Object> 
-        implements ThrowingRunnableFuture<Object, ExecutionException> {
-        
-        private final Serializable key;
-        private final Callable<?> callable;
-        private final long maxAge;
-        private final TimeUnit maxAgeUnit;
-        
-        public RemovingFuture(Serializable key, Callable<?> callable, long maxAge, TimeUnit maxAgeUnit) {
-            this.key = key;
-            this.callable = callable;
-            this.maxAge = maxAge;
-            this.maxAgeUnit = maxAgeUnit;
-        }
 
-        @Override
-        public void run() throws ExecutionException {
-            if (isCancelled())  {
-                LOG.debug("{} has been cancelled before running", this);
-            } else {
-                try {
-                    LOG.trace("Computing value using {}", callable);
-                    final Object value = callable.call();
-                    LOG.trace("Computed value {}", value);
-                    service.store(key, value, maxAge, maxAgeUnit);
-                    set(value);
-                } catch (ExecutionException e) {
-                    setException(e);
-                    throw e;
-                    /* CHECKSTYLE:OFF */
-                } catch (Exception e) {
-                    /* CHECKSTYLE:ON */
-                    setException(e);
-                    throw new ExecutionException(e);
-                } finally {
-                    futures.remove(key);
+        final List<ValueFuture<Object>> futures = computations.get(key);
+        final ValueFuture<Object> future = ValueFuture.create();
+        
+        futures.add(future);
+        
+        if (future.isCancelled()) {
+            LOG.trace("{} has been cancelled", future);
+        } else if (future.isDone()) {
+            LOG.trace("{} has already finished", future);
+        } else {
+            try {
+                final V computed = callable.call();
+                if (future.isDone()) {
+                    LOG.debug("Another computation was faster and already computed a value for {}", key);
+                } else {
+                    future.set(computed);
+                    for (ValueFuture<Object> other : futures) {
+                        if (other == future) {
+                            // every computation after this is newer
+                            break;
+                        } else if (other.isDone()) {
+                            // skip finished computations
+                            continue;
+                        } else {
+                            // make older and running computations use my computed value
+                            other.set(computed);
+                        }
+                    }
                 }
+            /* CHECKSTYLE:OFF */
+            } catch (Exception e) {
+            /* CHECKSTYLE:ON */
+                LOG.warn("Exception during {}.call()", callable);
+                future.setException(e);
+            } finally {
+                futures.remove(future);
             }
         }
         
-        @Override
-        public String toString() {
-            return callable.toString();
+        try {
+            @SuppressWarnings("unchecked")
+            final V value = (V) future.get();
+            return value;
+        } catch (InterruptedException e) {
+            throw new ExecutionException(e);
         }
-        
     }
     
     @Override
-    public <T> T read(Serializable key) throws CancellationException {
+    public <T> T read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final Future<?> future = futures.get(key);
-        if (future == null) {
-            LOG.trace("No running computation for key {}", key);
+        final List<ValueFuture<Object>> futures = computations.get(key);
+        
+        if (futures.isEmpty()) {
+            // no running computation, the easy part
             return service.<T>read(key);
         } else {
+            final ListIterator<ValueFuture<Object>> iterator = futures.listIterator(futures.size());
             try {
-                LOG.debug("Waiting for {} to finish computation", future);
+                final ValueFuture<Object> last = iterator.previous();
+                LOG.trace("Waiting for {} to compute value for key {}", last, key);
                 @SuppressWarnings("unchecked")
-                final T value = (T) future.get();
-                return value;
-            } catch (InterruptedException e) {
-                return strategy.<T>handle(e);
+                final T t = (T) last.get();
+                return t;
             } catch (CancellationException e) {
-                LOG.trace("{} has been cancelled during read", future);
-                return service.<T>read(key);
+                LOG.debug("Computation for {} has been cancelled during read", key);
+                return null;
+            } catch (InterruptedException e) {
+                LOG.warn("Thread has been interrupted during wait for {}", key);
+                return null;
             } catch (ExecutionException e) {
-                throw Throwables.propagate(e.getCause());
+                throw Throwables.propagate(e);
             }
         }
     }
@@ -219,21 +203,35 @@ final class BackedComputingCacheService implements ComputingCacheService {
     @Override
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        cancelIfRunning(key);
-        return service.<T>remove(key);
+        final List<ValueFuture<Object>> futures = computations.get(key);
+        
+        if (futures.isEmpty()) {
+            LOG.trace("Removing {} from underlying cache", key);
+            // no running computation, the easy part
+            return service.<T>remove(key);
+        } else {
+            LOG.trace("Forcing all running computations for {} to return null", key);
+            for (ValueFuture<Object> future : futures) {
+                // forces running computations to return null on Future#get()
+                future.set(null);
+                // futures in concurrent, so this should work
+                futures.remove(future);
+            }
+            // make sure the underlying cache removes any pre-computed value
+            return service.<T>remove(key);
+        }
     }
 
     @Override
     public void clear() {
         // cancel all pending and running computations
-        final Collection<Future<?>> toBeCancelled = Lists.newArrayList(futures.values());
-        futures.values().removeAll(toBeCancelled);
+        final Set<Serializable> keys = Sets.newHashSet(computations.keySet());
         
-        for (Future<?> future : toBeCancelled) {
-            strategy.cancel(future);
+        for (Serializable key : keys) {
+            remove(key);
         }
-
-        // clear all computed values
+        
+        // force the underlying cache to remove all precomputed values
         service.clear();
     }
 

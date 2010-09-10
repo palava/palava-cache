@@ -22,10 +22,10 @@ package de.cosmocode.palava.cache;
  * @since 2.4
  * @author Willi Schoenborn
  */
-public final class BackedComputingCacheServiceTest extends CacheServiceTest {
+public final class BackedComputingCacheServiceTest extends ComputingCacheServiceTest {
 
     @Override
-    public CacheService unit() {
+    public ComputingCacheService unit() {
         return new BackedComputingCacheService(new ConcurrentMapCacheService());
     }
 

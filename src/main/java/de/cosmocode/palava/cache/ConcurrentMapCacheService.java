@@ -115,14 +115,9 @@ final class ConcurrentMapCacheService implements CacheService {
     @Override
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final AgingEntry entry = cache.remove(key);
-        if (entry == null || entry.getAge(TimeUnit.SECONDS) > maxAgeInSeconds) {
-            return null;
-        } else {
-            @SuppressWarnings("unchecked")
-            final T value = (T) entry.getValue();
-            return value;
-        }
+        final T value = this.<T>read(key);
+        cache.remove(key);
+        return value;
     }
 
     @Override
