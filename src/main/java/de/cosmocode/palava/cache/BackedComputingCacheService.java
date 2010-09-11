@@ -58,7 +58,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
     public BackedComputingCacheService(CacheService service) {
         this.service = Preconditions.checkNotNull(service, "Service");
         
-        // weak value should remove empty queues from the map
+        // weak value "should" remove empty queues from the map
         final MapMaker maker = new MapMaker().weakValues();
         this.computations = maker.makeComputingMap(new Function<Serializable, Queue<ValueFuture<Object>>>() {
             
@@ -107,7 +107,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         try {
             computeAndStore(key, Callables.returning(value), maxAge, maxAgeUnit);
         } catch (ExecutionException e) {
-            LOG.warn("Exception while storing key {} to value {}", key, value);
+        	throw new IllegalArgumentException(e);
         }
     }
 
@@ -128,12 +128,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
         final Collection<ValueFuture<Object>> futures = computations.get(key);
         final ValueFuture<Object> future = ValueFuture.create();
         
+        // it's important to do this asap, to allow other callers
+        // to wait on read instead of starting the same computation
         futures.add(future);
         
         try {
             final V value = callable.call();
             if (future.isCancelled()) {
-                LOG.trace("{} has been cancelled", future);
+                LOG.warn("{} has been cancelled", future);
             } else if (future.isDone()) {
                 LOG.debug("Another computation was faster and already computed a value for {}", key);
             } else {
@@ -152,7 +154,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                         other.set(value);
                     }
                 }
-                LOG.trace("Storing '{}' => '{}' in underlying store", key, value);
+                LOG.trace("Storing '{}' to '{}' in underlying store", key, value);
                 service.store(key, value, maxAge, maxAgeUnit);
             }
         /* CHECKSTYLE:OFF */
@@ -205,7 +207,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
     @Override
     public <T> T remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final Collection<ValueFuture<Object>> futures = computations.get(key);
+        final Queue<ValueFuture<Object>> futures = computations.get(key);
         
         if (futures.isEmpty()) {
             LOG.trace("Removing {} from underlying cache", key);
@@ -213,11 +215,19 @@ final class BackedComputingCacheService implements ComputingCacheService {
             return service.<T>remove(key);
         } else {
             LOG.trace("Forcing all running computations for {} to return null", key);
-            for (ValueFuture<Object> future : futures) {
-                // forces running computations to return null on Future#get()
-                future.set(null);
-                // futures in concurrent, so this should work
-                futures.remove(future);
+            while (true) {
+            	// get and remove in one shot
+            	final ValueFuture<Object> future = futures.poll();
+            	if (future == null) {
+            		// no running computation left
+            		// weak values should take care of empty queue
+            		break;
+            	} else if (future.isDone()) {
+            		LOG.trace("{} finished during remove", future);
+            	} else {
+            		// return null to callers waiting on Future#get()
+            		future.set(null);
+            	}
             }
             // make sure the underlying cache removes any pre-computed value
             return service.<T>remove(key);
@@ -226,14 +236,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public void clear() {
-        // cancel all pending and running computations
+        // force every pending and running computation to return null on waiting callers
         final Set<Serializable> keys = Sets.newHashSet(computations.keySet());
         
         for (Serializable key : keys) {
             remove(key);
         }
         
-        // force the underlying cache to remove all precomputed values
+        // force the underlying cache to remove all pre-computed values
         service.clear();
     }
 
