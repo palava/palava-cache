@@ -107,7 +107,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
         try {
             computeAndStore(key, Callables.returning(value), maxAge, maxAgeUnit);
         } catch (ExecutionException e) {
-        	throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -125,15 +125,22 @@ final class BackedComputingCacheService implements ComputingCacheService {
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
 
+        return compute(key, callable, maxAge, maxAgeUnit);
+    }
+    
+    private <V> V compute(Serializable key, final Callable<? extends V> callable, long maxAge, TimeUnit maxAgeUnit) 
+        throws ExecutionException {
+        
         final Collection<ValueFuture<Object>> futures = computations.get(key);
         final ValueFuture<Object> future = ValueFuture.create();
-        
+
         // it's important to do this asap, to allow other callers
         // to wait on read instead of starting the same computation
         futures.add(future);
         
         try {
             final V value = callable.call();
+            
             if (future.isCancelled()) {
                 LOG.warn("{} has been cancelled", future);
             } else if (future.isDone()) {
@@ -157,21 +164,25 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 LOG.trace("Storing '{}' to '{}' in underlying store", key, value);
                 service.store(key, value, maxAge, maxAgeUnit);
             }
+            
+            @SuppressWarnings("unchecked")
+            final V returned = (V) future.get();
+            if (returned == null) {
+                // key has been removed during computation, use what this computation produced
+                return value;
+            } else {
+                return returned;
+            }
+        } catch (ExecutionException e) {
+            throw e;
         /* CHECKSTYLE:OFF */
         } catch (Exception e) {
         /* CHECKSTYLE:ON */
             LOG.warn("Exception during {}.call()", callable);
             future.setException(e);
+            throw new ExecutionException(e);
         } finally {
             futures.remove(future);
-        }
-        
-        try {
-            @SuppressWarnings("unchecked")
-            final V value = (V) future.get();
-            return value;
-        } catch (InterruptedException e) {
-            throw new ExecutionException(e);
         }
     }
     
@@ -199,7 +210,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 LOG.warn("Thread has been interrupted during wait for {}", key);
                 return null;
             } catch (ExecutionException e) {
-                throw Throwables.propagate(e);
+                // TODO a computation we were waiting for has thrown an exception, do we want to ignore it?
+                throw Throwables.propagate(e.getCause());
             }
         }
     }
@@ -216,18 +228,18 @@ final class BackedComputingCacheService implements ComputingCacheService {
         } else {
             LOG.trace("Forcing all running computations for {} to return null", key);
             while (true) {
-            	// get and remove in one shot
-            	final ValueFuture<Object> future = futures.poll();
-            	if (future == null) {
-            		// no running computation left
-            		// weak values should take care of empty queue
-            		break;
-            	} else if (future.isDone()) {
-            		LOG.trace("{} finished during remove", future);
-            	} else {
-            		// return null to callers waiting on Future#get()
-            		future.set(null);
-            	}
+                // get and remove in one shot
+                final ValueFuture<Object> future = futures.poll();
+                if (future == null) {
+                    // no running computation left
+                    // weak values should take care of empty queue
+                    break;
+                } else if (future.isDone()) {
+                    LOG.trace("{} finished during remove", future);
+                } else {
+                    // return null to callers waiting on Future#get()
+                    future.set(null);
+                }
             }
             // make sure the underlying cache removes any pre-computed value
             return service.<T>remove(key);
