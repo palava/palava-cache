@@ -17,6 +17,7 @@
 package de.cosmocode.palava.cache;
 
 import java.lang.annotation.Annotation;
+import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.base.Preconditions;
 import com.google.inject.Binder;
@@ -24,7 +25,7 @@ import com.google.inject.Module;
 import com.google.inject.Singleton;
 
 /**
- * Binds {@link CacheService} to a noop implementation.
+ * Binds {@link CacheService} to {@link ConcurrentMapCacheService}.
  *
  * @since 2.3
  * @author Willi Schoenborn
@@ -33,40 +34,41 @@ public final class ConcurrentMapCacheServiceModule implements Module {
 
     @Override
     public void configure(Binder binder) {
-        binder.bind(CacheService.class).to(NoCacheService.class).in(Singleton.class);
+        binder.bind(CacheService.class).to(ConcurrentMapCacheService.class).in(Singleton.class);
     }
 
     /**
-     * Creates a module which can be used to bind a noop {@link CacheService} implementation
-     * using a custom binding annotation.
+     * Creates a module which can be used to bind {@link CacheService} implementation
+     * backed by a {@link ConcurrentMap} using a custom binding annotation.
      * 
      * @since 2.3
      * @param annotation the binding annotation
-     * @return a module which binds a noop {@link CacheService} using the specified binding annotation
+     * @return a module which binds a concurrent map {@link CacheService} using the specified binding annotation
      * @throws NullPointerException if annotation is null
      */
     public static Module annotatedWith(Class<? extends Annotation> annotation) {
-        return new AnnotatedNoCacheModule(annotation);
+        return new AnnotatedModule(annotation);
     }
     
     /**
-     * Private {@link Module} implementation which binds {@link NoCacheService} to an
+     * Private {@link Module} implementation which binds {@link ConcurrentMapCacheService} to an
      * annotated {@link CacheService}.
      *
      * @since 2.3
      * @author Willi Schoenborn
      */
-    private static final class AnnotatedNoCacheModule implements Module {
+    private static final class AnnotatedModule implements Module {
         
         private final Class<? extends Annotation> annotation;
 
-        public AnnotatedNoCacheModule(Class<? extends Annotation> annotation) {
+        public AnnotatedModule(Class<? extends Annotation> annotation) {
             this.annotation = Preconditions.checkNotNull(annotation, "Annotation");
         }
         
         @Override
         public void configure(Binder binder) {
-            binder.bind(CacheService.class).annotatedWith(annotation).to(NoCacheService.class).in(Singleton.class);
+            binder.bind(CacheService.class).annotatedWith(annotation).
+                to(ConcurrentMapCacheService.class).in(Singleton.class);
         }
         
     }
