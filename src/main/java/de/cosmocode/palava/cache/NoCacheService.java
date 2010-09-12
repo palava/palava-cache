@@ -68,13 +68,13 @@ final class NoCacheService implements CacheService {
     }
 
     @Override
-    public <T> T read(Serializable key) {
+    public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         return null;
     }
 
     @Override
-    public <T> T remove(Serializable key) {
+    public <V> V remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         return null;
     }

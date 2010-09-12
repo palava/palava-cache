@@ -126,7 +126,7 @@ public interface ComputingCacheService extends CacheService {
      * @throws RuntimeException any exception thrown by the computing unit
      */
     @Override
-    <T> T read(Serializable key);
+    <V> V read(Serializable key);
 
     /**
      * {@inheritDoc}
@@ -143,7 +143,7 @@ public interface ComputingCacheService extends CacheService {
      * @since 2.4
      */
     @Override
-    <T> T remove(Serializable key);
+    <V> V remove(Serializable key);
     
     /**
      * {@inheritDoc}

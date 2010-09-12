@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Callables;
@@ -187,21 +186,22 @@ final class BackedComputingCacheService implements ComputingCacheService {
     }
     
     @Override
-    public <T> T read(Serializable key) {
+    public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         final Collection<ValueFuture<Object>> futures = computations.get(key);
         
         if (futures.isEmpty()) {
             LOG.trace("Reading pre-computed value for {} from underlying cache", key);
             // no running computation, the easy part
-            return service.<T>read(key);
+            return service.<V>read(key);
         } else {
             final Iterator<ValueFuture<Object>> iterator = futures.iterator();
+            final ValueFuture<Object> future = iterator.next();
+            
             try {
-                final ValueFuture<Object> future = iterator.next();
                 LOG.trace("Waiting for {} to compute value for key {}", future, key);
                 @SuppressWarnings("unchecked")
-                final T t = (T) future.get();
+                final V t = (V) future.get();
                 return t;
             } catch (CancellationException e) {
                 LOG.debug("Computation for {} has been cancelled during read", key);
@@ -210,21 +210,21 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 LOG.warn("Thread has been interrupted during wait for {}", key);
                 return null;
             } catch (ExecutionException e) {
-                // TODO a computation we were waiting for has thrown an exception, do we want to ignore it?
-                throw Throwables.propagate(e.getCause());
+                LOG.warn("Exception while waiting for " + future, e.getCause());
+                return null;
             }
         }
     }
 
     @Override
-    public <T> T remove(Serializable key) {
+    public <V> V remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         final Queue<ValueFuture<Object>> futures = computations.get(key);
         
         if (futures.isEmpty()) {
             LOG.trace("Removing {} from underlying cache", key);
             // no running computation, the easy part
-            return service.<T>remove(key);
+            return service.<V>remove(key);
         } else {
             LOG.trace("Forcing all running computations for {} to return null", key);
             while (true) {
@@ -242,7 +242,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 }
             }
             // make sure the underlying cache removes any pre-computed value
-            return service.<T>remove(key);
+            return service.<V>remove(key);
         }
     }
 

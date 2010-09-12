@@ -29,7 +29,7 @@ import com.google.inject.Singleton;
  * @since 2.3
  * @author Willi Schoenborn
  */
-public final class NoCacheModule implements Module {
+public final class NoCacheServiceModule implements Module {
 
     @Override
     public void configure(Binder binder) {
