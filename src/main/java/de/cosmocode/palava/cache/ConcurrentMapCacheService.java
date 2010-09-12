@@ -83,7 +83,7 @@ final class ConcurrentMapCacheService implements CacheService {
     @Override
     public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        return cache.get(key).getValue();
+        return cache.get(key).<V>getValue();
     }
 
     @Override
