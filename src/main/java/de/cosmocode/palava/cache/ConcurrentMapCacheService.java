@@ -20,9 +20,6 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
 
@@ -34,66 +31,45 @@ import com.google.common.collect.MapMaker;
  */
 final class ConcurrentMapCacheService implements CacheService {
     
-    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentMapCacheService.class);
+    private final ConcurrentMap<Serializable, AgingEntry> cache;
 
-    /**
-     * A map value which holds it's age.
-     *
-     * @since 2.4
-     * @author Willi Schoenborn
-     */
-    private static final class AgingEntry {
-        
-        private final long timestamp = System.currentTimeMillis();
-        private final Object value;
-        
-        public AgingEntry(Object value) {
-            this.value = value;
-        }
-        
-        public long getAge(TimeUnit unit) {
-            return unit.convert(System.currentTimeMillis() - timestamp, TimeUnit.MILLISECONDS);
-        }
-        
-        public Object getValue() {
-            return value;
-        }
-        
-    }
+    private long defaultMaxAge;
+    private TimeUnit defaultMaxAgeUnit = TimeUnit.SECONDS;
     
-    private final MapMaker maker = new MapMaker().softValues();
-    private final ConcurrentMap<Serializable, AgingEntry> cache = maker.makeMap();
-
-    private long maxAgeInSeconds;
+    public ConcurrentMapCacheService() {
+        final MapMaker maker = new MapMaker().softKeys().softValues();
+        this.cache = maker.makeComputingMap(AgedEntry.PRODUCER);
+    }
     
     @Override
     public long getMaxAge() {
-        return maxAgeInSeconds;
+        return defaultMaxAgeUnit.toSeconds(defaultMaxAge);
     }
 
     @Override
     public long getMaxAge(TimeUnit unit) {
         Preconditions.checkNotNull(unit, "Unit");
-        return unit.convert(maxAgeInSeconds, TimeUnit.SECONDS);
+        return unit.convert(defaultMaxAge, defaultMaxAgeUnit);
     }
 
     @Override
-    public void setMaxAge(long maxAgeSeconds) {
-        Preconditions.checkArgument(maxAgeSeconds >= 0, "Max age must not be negative");
-        this.maxAgeInSeconds = maxAgeSeconds;
+    public void setMaxAge(long maxAgeInSeconds) {
+        Preconditions.checkArgument(maxAgeInSeconds >= 0, "Max age must not be negative");
+        this.defaultMaxAge = defaultMaxAgeUnit.convert(maxAgeInSeconds, TimeUnit.SECONDS);
     }
 
     @Override
     public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        this.maxAgeInSeconds = maxAgeUnit.toSeconds(maxAge);
+        this.defaultMaxAge = maxAge;
+        this.defaultMaxAgeUnit = maxAgeUnit;
     }
 
     @Override
     public void store(Serializable key, Object value) {
         Preconditions.checkNotNull(key, "Key");
-        store(key, value, maxAgeInSeconds, TimeUnit.SECONDS);
+        store(key, value, defaultMaxAge, defaultMaxAgeUnit);
     }
 
     @Override
@@ -101,30 +77,19 @@ final class ConcurrentMapCacheService implements CacheService {
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        cache.put(key, new AgingEntry(value));
+        cache.put(key, new SimpleAgingEntry(value, maxAge, maxAgeUnit));
     }
 
     @Override
-    public <T> T read(Serializable key) {
+    public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final AgingEntry entry = cache.get(key);
-        if (entry == null) {
-            LOG.trace("No entry found");
-            return null;
-        } else if (entry.getAge(TimeUnit.SECONDS) > maxAgeInSeconds) {
-            LOG.trace("Entry found but was too old");
-            return null;
-        } else {
-            @SuppressWarnings("unchecked")
-            final T value = (T) entry.getValue();
-            return value;
-        }
+        return cache.get(key).getValue();
     }
 
     @Override
-    public <T> T remove(Serializable key) {
+    public <V> V remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final T value = this.<T>read(key);
+        final V value = this.<V>read(key);
         cache.remove(key);
         return value;
     }

@@ -56,11 +56,11 @@ public interface CacheService {
      * Sets the maximum age for the store method, in seconds.
      * This method calls {@link #setMaxAge(long, TimeUnit)} with {@link TimeUnit#SECONDS}.
      * 
-     * @param maxAgeSeconds the maximum age of every stored item
-     * @throws IllegalArgumentException if maxAge is negative
+     * @param maxAgeInSeconds the maximum age of every stored item
+     * @throws IllegalArgumentException if maxAgeInSeconds is negative
      * @see #setMaxAge(long, TimeUnit)
      */
-    void setMaxAge(long maxAgeSeconds);
+    void setMaxAge(long maxAgeInSeconds);
     
     /**
      * <p>
@@ -125,14 +125,14 @@ public interface CacheService {
      *   no ClassCastException occurs.
      * </p>
      * 
-     * @param <T> the generic object type
+     * @param <V> the generic object type
      * @param key the cache key
      * @return a casted instance of T or null, if there was
      *         no value cached for the given key or the value has expired its max age
      * @throws NullPointerException if key is null
      * @throws ClassCastException if the found value couln't be cast into T
      */
-    <T> T read(Serializable key);
+    <V> V read(Serializable key);
     
     /**
      * Clears an object from the cache by key.
@@ -144,12 +144,12 @@ public interface CacheService {
      *   no ClassCastException occurs.
      * </p>
      * 
-     * @param <T> the generic object type
+     * @param <V> the generic object type
      * @param key the cache key
      * @return the object that associated with key or null if there was none
      * @throws NullPointerException if key is null
      */
-    <T> T remove(Serializable key);
+    <V> V remove(Serializable key);
     
     /**
      * Clears the cache.
