@@ -1,35 +1,36 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<version>2.4-SNAPSHOT</version>
-	<parent>
-		<artifactId>palava-parent</artifactId>
-		<groupId>de.cosmocode.palava</groupId>
-		<version>2.4.0</version>
-	</parent>
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.cosmocode.palava</groupId>
-	<artifactId>palava-cache</artifactId>
-	<name>Palava Cache</name>
-	<scm>
-		<developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-cache/trunk</developerConnection>
-	</scm>
-	<repositories>
-		<repository>
-			<id>cosmocode-public</id>
-			<name>CosmoCode Public Maven Repository</name>
-			<url>http://mvn.cosmocode.de/</url>
-		</repository>
-	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>de.cosmocode.palava</groupId>
-			<artifactId>palava-ipc</artifactId>
-			<version>[1.0,2)</version>
-		</dependency>
-		<dependency>
-			<groupId>de.cosmocode</groupId>
-			<artifactId>cosmocode-junit</artifactId>
-			<scope>test</scope>
-			<version>[1.2,2)</version>
-		</dependency>
-	</dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <version>2.4-SNAPSHOT</version>
+  <parent>
+    <artifactId>palava-parent</artifactId>
+    <groupId>de.cosmocode.palava</groupId>
+    <version>2.5.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.cosmocode.palava</groupId>
+  <artifactId>palava-cache</artifactId>
+  <name>Palava Cache</name>
+  <scm>
+    <developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-cache/trunk</developerConnection>
+  </scm>
+  <repositories>
+    <repository>
+      <id>cosmocode-public</id>
+      <name>CosmoCode Public Maven Repository</name>
+      <url>http://mvn.cosmocode.de/</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>de.cosmocode.palava</groupId>
+      <artifactId>palava-ipc</artifactId>
+      <version>[1.0,2)</version>
+    </dependency>
+    <dependency>
+      <groupId>de.cosmocode</groupId>
+      <artifactId>cosmocode-junit</artifactId>
+      <scope>test</scope>
+      <version>[1.2,2)</version>
+    </dependency>
+  </dependencies>
 </project>
