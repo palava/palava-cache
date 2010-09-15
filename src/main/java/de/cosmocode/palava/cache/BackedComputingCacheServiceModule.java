@@ -50,7 +50,7 @@ public final class BackedComputingCacheServiceModule implements Module {
     public static Module annotatedWithAndBackedBy(Class<? extends Annotation> annotation, 
         Key<? extends CacheService> serviceKey) {
         
-        return  new AnnotatedModule(annotation, serviceKey);
+        return new AnnotatedModule(annotation, serviceKey);
     }
     
     /**
