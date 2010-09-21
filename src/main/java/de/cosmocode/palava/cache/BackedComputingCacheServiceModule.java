@@ -19,7 +19,6 @@ package de.cosmocode.palava.cache;
 import java.lang.annotation.Annotation;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
@@ -30,13 +29,32 @@ import com.google.inject.Singleton;
  *
  * @author Willi Schoenborn
  */
-public final class BackedComputingCacheServiceModule implements Module {
+public final class BackedComputingCacheServiceModule extends PrivateModule {
     
     @Override
-    public void configure(Binder binder) {
-        binder.bind(ComputingCacheService.class).to(BackedComputingCacheService.class).in(Singleton.class);
+    public void configure() {
+        bind(CacheService.class).annotatedWith(Backing.class).to(CacheService.class).in(Singleton.class);
+        bind(ComputingCacheService.class).to(BackedComputingCacheService.class).in(Singleton.class);
+        expose(ComputingCacheService.class);
     }
 
+    /**
+     * Creates a module which binds a {@link BackedComputingCacheService} using
+     * the given binding annotation and the key to the backing {@link CacheService}.
+     * 
+     * @since 2.4
+     * @param annotation the binding annotation
+     * @param serviceAnnotation the binding annotation of the backing {@link CacheService}
+     * @return a module binding a {@link BackedComputingCacheService} using the specified binding
+     *         annotation
+     */
+    public static Module annotatedWithAndBackedBy(Class<? extends Annotation> annotation, 
+        Class<? extends Annotation> serviceAnnotation) {
+        
+        Preconditions.checkNotNull(serviceAnnotation, "ServiceAnnotation");
+        return annotatedWithAndBackedBy(annotation, Key.get(CacheService.class, serviceAnnotation));
+    }
+    
     /**
      * Creates a module which binds a {@link BackedComputingCacheService} using
      * the given binding annotation and the key to the backing {@link CacheService}.
@@ -72,7 +90,7 @@ public final class BackedComputingCacheServiceModule implements Module {
 
         @Override
         protected void configure() {
-            bind(CacheService.class).to(serviceKey);
+            bind(CacheService.class).annotatedWith(Backing.class).to(serviceKey).in(Singleton.class);
             bind(ComputingCacheService.class).annotatedWith(annotation).
                 to(BackedComputingCacheService.class).in(Singleton.class);
             

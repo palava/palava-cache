@@ -54,7 +54,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
     private final ConcurrentMap<Serializable, Queue<ValueFuture<Object>>> computations;
     
     @Inject
-    public BackedComputingCacheService(CacheService service) {
+    public BackedComputingCacheService(@Backing CacheService service) {
         this.service = Preconditions.checkNotNull(service, "Service");
         
         // weak value "should" remove empty queues from the map
