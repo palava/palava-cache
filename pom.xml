@@ -11,7 +11,7 @@
   <artifactId>palava-cache</artifactId>
   <name>Palava Cache</name>
   <scm>
-    <developerConnection>scm:svn:https://palava.svn.cosmocode.de/palava-cache/trunk</developerConnection>
+    <developerConnection>scm:git:git@github.com:palava/${project.artifactId}.git</developerConnection>
   </scm>
   <repositories>
     <repository>
