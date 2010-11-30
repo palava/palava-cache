@@ -20,8 +20,16 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
+import de.cosmocode.palava.core.lifecycle.Initializable;
+import de.cosmocode.palava.core.lifecycle.LifecycleException;
 
 /**
  * A {@link ConcurrentMap} backed {@link CacheService}.
@@ -29,16 +37,77 @@ import com.google.common.collect.MapMaker;
  * @since 2.4
  * @author Willi Schoenborn
  */
-final class ConcurrentMapCacheService implements CacheService {
+final class ConcurrentMapCacheService implements CacheService, Initializable {
     
-    private final ConcurrentMap<Serializable, AgingEntry> cache;
+    private static final Logger LOG = LoggerFactory.getLogger(ConcurrentMapCacheService.class);
 
+    private ReferenceMode keyMode = ReferenceMode.SOFT;
+    private ReferenceMode valueMode = ReferenceMode.SOFT;
+    
+    private int maximumSize;
+    private int initialCapacity = 16;
+    private int concurrencyLevel = 16;
+    
     private long defaultMaxAge;
     private TimeUnit defaultMaxAgeUnit = TimeUnit.SECONDS;
     
-    public ConcurrentMapCacheService() {
-        final MapMaker maker = new MapMaker().softKeys().softValues();
-        this.cache = maker.makeComputingMap(AgedEntry.PRODUCER);
+    private ConcurrentMap<Serializable, AgingEntry> cache;
+    
+    @Override
+    public void initialize() throws LifecycleException {
+        final MapMaker maker = new MapMaker();
+        
+        LOG.info("Using {} keys", keyMode.name().toLowerCase());
+        switch (keyMode) {
+            case SOFT: {
+                maker.softKeys();
+                break;
+            }
+            case WEAK: {
+                maker.weakKeys();
+                break;
+            }
+            case STRONG: {
+                // nothing to do
+                break;
+            }
+            default: {
+                
+            }
+        }
+
+        LOG.info("Using {} values", valueMode.name().toLowerCase());
+        switch (valueMode) {
+            case SOFT: {
+                maker.softValues();
+                break;
+            }
+            case WEAK: {
+                maker.weakValues();
+                break;
+            }
+            case STRONG: {
+                // nothing to do
+                break;
+            }
+            default: {
+                
+            }
+        }
+        
+        LOG.info("Setting initial capacity to {}", initialCapacity);
+        maker.initialCapacity(initialCapacity);
+        
+        LOG.info("Setting concurrency level to {}", concurrencyLevel);
+        maker.concurrencyLevel(concurrencyLevel);
+        
+        if (maximumSize == 0) {
+            LOG.info("Not limiting elements");
+        } else {
+            LOG.info("Limiting to {} elements", maximumSize);
+        }
+        
+        this.cache = maker.makeComputingMap(AgedEntry.INSTANCE);
     }
     
     @Override
@@ -59,11 +128,29 @@ final class ConcurrentMapCacheService implements CacheService {
     }
 
     @Override
-    public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
+    @Inject(optional = true)
+    public void setMaxAge(
+        @Named(ConcurrentMapCacheConfig.MAX_AGE) long maxAge, 
+        @Named(ConcurrentMapCacheConfig.MAX_AGE_UNIT) TimeUnit maxAgeUnit) {
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
         this.defaultMaxAge = maxAge;
         this.defaultMaxAgeUnit = maxAgeUnit;
+    }
+    
+    @Inject(optional = true)
+    void setMaximumSize(@Named(ConcurrentMapCacheConfig.MAXIMUM_SIZE) int maximumSize) {
+        this.maximumSize = maximumSize;
+    }
+
+    @Inject(optional = true)
+    void setConcurrencyLevel(@Named(ConcurrentMapCacheConfig.CONCURRENCY_LEVEL) int concurrencyLevel) {
+        this.concurrencyLevel = concurrencyLevel;
+    }
+
+    @Inject(optional = true)
+    void setInitialCapacity(@Named(ConcurrentMapCacheConfig.INITIAL_CAPACITY) int initialCapacity) {
+        this.initialCapacity = initialCapacity;
     }
 
     @Override

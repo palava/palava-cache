@@ -26,7 +26,9 @@ public final class BackedComputingCacheServiceTest extends ComputingCacheService
 
     @Override
     public ComputingCacheService unit() {
-        return new BackedComputingCacheService(new ConcurrentMapCacheService());
+        final ConcurrentMapCacheService backing = new ConcurrentMapCacheService();
+        backing.initialize();
+        return new BackedComputingCacheService(backing);
     }
 
 }

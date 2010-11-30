@@ -17,18 +17,25 @@
 package de.cosmocode.palava.cache;
 
 /**
- * Tests {@link ConcurrentMapCacheService}.
- *
- * @since 2.4
+ * Static constant holder class for concurrent map cache config key names.
+ * 
+ * @version 2.4
  * @author Willi Schoenborn
  */
-public final class ConcurrentMapCacheServiceTest extends CacheServiceTest {
+final class ConcurrentMapCacheConfig {
+    
+    public static final String MAX_AGE = CacheConfig.PREFIX + "maxAge";
 
-    @Override
-    public CacheService unit() {
-        final ConcurrentMapCacheService unit = new ConcurrentMapCacheService();
-        unit.initialize();
-        return unit;
+    public static final String MAX_AGE_UNIT = CacheConfig.PREFIX + "maxAgeUnit";
+    
+    public static final String MAXIMUM_SIZE = CacheConfig.PREFIX + "maximumSize";
+    
+    public static final String INITIAL_CAPACITY = CacheConfig.PREFIX + "initialCapacity";
+    
+    public static final String CONCURRENCY_LEVEL = CacheConfig.PREFIX + "concurrencyLevel";
+    
+    private ConcurrentMapCacheConfig() {
+        
     }
 
 }

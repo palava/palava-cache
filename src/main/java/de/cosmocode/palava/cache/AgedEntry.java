@@ -30,19 +30,10 @@ import com.google.common.base.Preconditions;
  * 
  * @author Willi Schoenborn
  */
-enum AgedEntry implements AgingEntry {
+enum AgedEntry implements AgingEntry, Function<Serializable, AgingEntry> {
 
     INSTANCE;
     
-    public static final Function<Serializable, AgingEntry> PRODUCER = new Function<Serializable, AgingEntry>() {
-        
-        @Override
-        public AgingEntry apply(Serializable key) {
-            return AgedEntry.INSTANCE;
-        }
-    
-    };
-
     private static final Logger LOG = LoggerFactory.getLogger(AgedEntry.class);
     
     @Override
@@ -65,6 +56,11 @@ enum AgedEntry implements AgingEntry {
     public <V> V getValue() {
         LOG.trace("No entry found");
         return null;
+    }
+
+    @Override
+    public AgingEntry apply(Serializable key) {
+        return this;
     }
     
 }

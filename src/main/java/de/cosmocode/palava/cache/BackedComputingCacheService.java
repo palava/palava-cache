@@ -18,7 +18,6 @@ package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -26,6 +25,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -173,6 +173,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 return returned;
             }
         } catch (ExecutionException e) {
+            LOG.warn("Exception during {}.call()", callable);
+            future.setException(e);
             throw e;
         /* CHECKSTYLE:OFF */
         } catch (Exception e) {
@@ -188,16 +190,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
     @Override
     public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final Collection<ValueFuture<Object>> futures = computations.get(key);
+        final Queue<ValueFuture<Object>> futures = computations.get(key);
+        final Future<Object> future = futures.poll();
         
-        if (futures.isEmpty()) {
+        if (future == null) {
             LOG.trace("Reading pre-computed value for {} from underlying cache", key);
             // no running computation, the easy part
             return service.<V>read(key);
         } else {
-            final Iterator<ValueFuture<Object>> iterator = futures.iterator();
-            final ValueFuture<Object> future = iterator.next();
-            
             try {
                 LOG.trace("Waiting for {} to compute value for key {}", future, key);
                 @SuppressWarnings("unchecked")

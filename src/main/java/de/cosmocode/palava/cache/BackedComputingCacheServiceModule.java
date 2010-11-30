@@ -34,7 +34,9 @@ public final class BackedComputingCacheServiceModule extends PrivateModule {
     @Override
     public void configure() {
         bind(CacheService.class).annotatedWith(Backing.class).to(CacheService.class).in(Singleton.class);
+        bind(CacheService.class).to(ComputingCacheService.class).in(Singleton.class);
         bind(ComputingCacheService.class).to(BackedComputingCacheService.class).in(Singleton.class);
+        expose(CacheService.class);
         expose(ComputingCacheService.class);
     }
 
@@ -91,10 +93,15 @@ public final class BackedComputingCacheServiceModule extends PrivateModule {
         @Override
         protected void configure() {
             bind(CacheService.class).annotatedWith(Backing.class).to(serviceKey).in(Singleton.class);
+            
             bind(ComputingCacheService.class).annotatedWith(annotation).
                 to(BackedComputingCacheService.class).in(Singleton.class);
             
+            bind(CacheService.class).annotatedWith(annotation).
+                to(Key.get(ComputingCacheService.class, annotation)).in(Singleton.class);
+            
             expose(ComputingCacheService.class).annotatedWith(annotation);
+            expose(CacheService.class).annotatedWith(annotation);
         }
         
     }

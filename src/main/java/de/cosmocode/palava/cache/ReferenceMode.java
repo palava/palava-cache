@@ -17,18 +17,17 @@
 package de.cosmocode.palava.cache;
 
 /**
- * Tests {@link ConcurrentMapCacheService}.
+ * Specifies the key and value modes for {@link ConcurrentMapCacheService}.
  *
- * @since 2.4
+ * @version 2.4
  * @author Willi Schoenborn
  */
-public final class ConcurrentMapCacheServiceTest extends CacheServiceTest {
+enum ReferenceMode {
 
-    @Override
-    public CacheService unit() {
-        final ConcurrentMapCacheService unit = new ConcurrentMapCacheService();
-        unit.initialize();
-        return unit;
-    }
-
+    SOFT,
+    
+    WEAK,
+    
+    STRONG;
+    
 }
