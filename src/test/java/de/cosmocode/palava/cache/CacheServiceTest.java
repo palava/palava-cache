@@ -27,13 +27,6 @@ import de.cosmocode.junit.UnitProvider;
 /**
  * Abstract test-class for CacheService.
  * 
- * TODO add test for:
- * a) store something (either with explicit max age or using the defaults)
- * b) change the defaults to a small value
- * c) retrieve the value and expect it to be present
- * 
- * TODO add support for changing timeunit/sleeping times
- * 
  * @author Markus Baumann
  * @author Oliver Lorenz (everything with maxAge)
  */
