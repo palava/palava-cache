@@ -157,8 +157,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 service.store(key, value, maxAge, maxAgeUnit);
             }
             
-            @SuppressWarnings("unchecked")
-            final V returned = (V) future.get();
+            final V returned = cast(future.get());
             if (returned == null) {
                 LOG.trace("Key '{}' has been removed during computation, returning value '{}'", key, value);
                 return value;
@@ -208,6 +207,11 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 return null;
             }
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private <V> V cast(Object value) {
+        return (V) value;
     }
 
     @Override
