@@ -23,8 +23,12 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.google.common.util.concurrent.Callables;
+
+import de.cosmocode.commons.Throwables;
+import de.cosmocode.junit.LoggingRunner;
 
 /**
  * Abstract test case for {@link ComputingCacheService}s.
@@ -32,6 +36,7 @@ import com.google.common.util.concurrent.Callables;
  * @since 2.4
  * @author Willi Schoenborn
  */
+@RunWith(LoggingRunner.class)
 public abstract class ComputingCacheServiceTest extends CacheServiceTest {
 
     @Override

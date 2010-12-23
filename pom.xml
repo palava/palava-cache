@@ -35,7 +35,7 @@
       <groupId>de.cosmocode</groupId>
       <artifactId>cosmocode-junit</artifactId>
       <scope>test</scope>
-      <version>[1.2,2)</version>
+      <version>[1.5,2)</version>
     </dependency>
   </dependencies>
 </project>

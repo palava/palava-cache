@@ -21,7 +21,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import de.cosmocode.junit.LoggingRunner;
 import de.cosmocode.junit.UnitProvider;
 
 /**
@@ -30,6 +32,7 @@ import de.cosmocode.junit.UnitProvider;
  * @author Markus Baumann
  * @author Oliver Lorenz (everything with maxAge)
  */
+@RunWith(LoggingRunner.class)
 public abstract class CacheServiceTest implements UnitProvider<CacheService> {
 
     /**
