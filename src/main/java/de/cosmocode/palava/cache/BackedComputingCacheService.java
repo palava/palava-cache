@@ -148,7 +148,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                         LOG.trace("Skipping finished computation: {}", other);
                         continue;
                     } else {
-                        // make older and running computations use my computed value
+                        // make older and still running computations use my computed value
                         LOG.trace("Setting faster computed value '{}' on {}", value, other);
                         other.set(value);
                     }
