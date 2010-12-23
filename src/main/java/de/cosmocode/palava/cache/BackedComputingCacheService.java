@@ -19,7 +19,6 @@ package de.cosmocode.palava.cache;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.MapMaker;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Callables;
 import com.google.common.util.concurrent.ValueFuture;
 import com.google.inject.Inject;
@@ -249,9 +247,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
     @Override
     public void clear() {
         // force every pending and running computation to return null on waiting callers
-        final Set<Serializable> keys = Sets.newHashSet(computations.keySet());
-        
-        for (Serializable key : keys) {
+        for (Serializable key : computations.keySet()) {
             remove(key);
         }
         
