@@ -48,8 +48,8 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     private int initialCapacity = 16;
     private int concurrencyLevel = 16;
     
-    private long defaultMaxAge;
-    private TimeUnit defaultMaxAgeUnit = TimeUnit.SECONDS;
+    private long defaultMaxAge = CacheService.DEFAULT_MAX_AGE;
+    private TimeUnit defaultMaxAgeUnit = CacheService.DEFAULT_MAX_AGE_TIMEUNIT;
     
     private ConcurrentMap<Serializable, AgingEntry> cache;
     
