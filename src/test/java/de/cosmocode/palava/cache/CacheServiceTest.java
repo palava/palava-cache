@@ -85,14 +85,14 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test
     public void testStoreWithSetMaxAge() throws InterruptedException {
-        final int maxAge = 1;
-        final TimeUnit timeUnit = TimeUnit.SECONDS;
+        final int maxAge = 50;
+        final TimeUnit timeUnit = TimeUnit.MILLISECONDS;
         final Serializable key = 1;
         final CacheService unit = unit();
 
         unit.setMaxAge(maxAge, timeUnit);
         unit.store(key, "TestEntry");
-        Thread.sleep(timeUnit.toMillis(maxAge) + 1000);
+        Thread.sleep(100);
         Assert.assertNull("should be expired, but is not", unit.read(key));
     }
 
@@ -103,13 +103,13 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test
     public void testStoreWithMaxAge() throws InterruptedException {
-        final int maxAge = 1;
-        final TimeUnit timeUnit = TimeUnit.SECONDS;
+        final int maxAge = 50;
+        final TimeUnit timeUnit = TimeUnit.MILLISECONDS;
         final Serializable key = 1;
         final CacheService unit = unit();
 
         unit.store(key, "TestEntry", maxAge, timeUnit);
-        Thread.sleep(timeUnit.toMillis(maxAge) + 1000);
+        Thread.sleep(100);
         Assert.assertNull("should be expired, but is not", unit.read(key));
     }
 
