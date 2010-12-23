@@ -168,7 +168,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
             }
         } catch (ExecutionException e) {
             LOG.warn("Exception during {}.call()", callable);
-            future.setException(e);
+            future.setException(e.getCause());
             throw e;
         /* CHECKSTYLE:OFF */
         } catch (Exception e) {
