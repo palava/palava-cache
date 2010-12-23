@@ -94,7 +94,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public void store(Serializable key, Object value) {
-        store(key, value, getMaxAge(), TimeUnit.SECONDS);
+        store(key, value, getMaxAge(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -106,13 +106,13 @@ final class BackedComputingCacheService implements ComputingCacheService {
         try {
             computeAndStore(key, Callables.returning(value), maxAge, maxAgeUnit);
         } catch (ExecutionException e) {
-            throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(e.getCause());
         }
     }
 
     @Override
     public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
-        return computeAndStore(key, callable, getMaxAge(), TimeUnit.SECONDS);
+        return computeAndStore(key, callable, getMaxAge(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
     }
     
     @Override
