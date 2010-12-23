@@ -29,17 +29,49 @@ import com.google.inject.Singleton;
  *
  * @author Willi Schoenborn
  */
-public final class BackedComputingCacheServiceModule extends PrivateModule {
+public final class BackedComputingCacheServiceModule {
     
-    @Override
-    public void configure() {
-        bind(CacheService.class).annotatedWith(Backing.class).to(CacheService.class).in(Singleton.class);
-        bind(CacheService.class).to(ComputingCacheService.class).in(Singleton.class);
-        bind(ComputingCacheService.class).to(BackedComputingCacheService.class).in(Singleton.class);
-        expose(CacheService.class);
-        expose(ComputingCacheService.class);
+    private BackedComputingCacheServiceModule() {
+        
     }
 
+    /**
+     * Creates a module which binds a {@link BackedComputingCacheService} using
+     * the given binding annotation to the backing {@link CacheService}.
+     *
+     * @since 2.4
+     * @param annotation the binding annotation of the backing cache service
+     * @return a module binding a {@link BackedComputingCacheService}
+     */
+    public static Module backedBy(final Class<? extends Annotation> annotation) {
+        return new BackedByModule(annotation);
+    }
+    
+    /**
+     * Private module implementation used by {@link BackedComputingCacheServiceModule#backedBy(Class)}.
+     *
+     * @since 2.4
+     * @author Willi Schoenborn
+     */
+    private static final class BackedByModule extends PrivateModule {
+        
+        private final Class<? extends Annotation> annotation;
+
+        private BackedByModule(Class<? extends Annotation> annotation) {
+            this.annotation = Preconditions.checkNotNull(annotation, "Annotation");
+        }
+
+        @Override
+        protected void configure() {
+            final Key<CacheService> key = Key.get(CacheService.class, annotation);
+            bind(CacheService.class).annotatedWith(Backing.class).to(key).in(Singleton.class);
+            bind(CacheService.class).to(ComputingCacheService.class).in(Singleton.class);
+            bind(ComputingCacheService.class).to(BackedComputingCacheService.class).in(Singleton.class);
+            expose(CacheService.class);
+            expose(ComputingCacheService.class);
+        }
+    }
+    
     /**
      * Creates a module which binds a {@link BackedComputingCacheService} using
      * the given binding annotation and the key to the backing {@link CacheService}.
@@ -69,10 +101,9 @@ public final class BackedComputingCacheServiceModule extends PrivateModule {
      */
     public static Module annotatedWithAndBackedBy(Class<? extends Annotation> annotation, 
         Key<? extends CacheService> serviceKey) {
-        
         return new AnnotatedModule(annotation, serviceKey);
     }
-    
+
     /**
      * Private module implementation used by
      * {@link BackedComputingCacheServiceModule#annotatedWithAndBackedBy(Class, Key)}.
