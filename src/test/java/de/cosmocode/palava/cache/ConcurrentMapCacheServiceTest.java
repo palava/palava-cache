@@ -16,6 +16,11 @@
 
 package de.cosmocode.palava.cache;
 
+import com.google.inject.Guice;
+
+import de.cosmocode.palava.core.DefaultRegistryModule;
+import de.cosmocode.palava.core.lifecycle.LifecycleModule;
+
 /**
  * Tests {@link ConcurrentMapCacheService}.
  *
@@ -26,9 +31,11 @@ public final class ConcurrentMapCacheServiceTest extends CacheServiceTest {
 
     @Override
     public CacheService unit() {
-        final ConcurrentMapCacheService unit = new ConcurrentMapCacheService();
-        unit.initialize();
-        return unit;
+        return Guice.createInjector(
+                new LifecycleModule(),
+                new DefaultRegistryModule(),
+                new ConcurrentMapCacheServiceModule()).
+            getInstance(CacheService.class);
     }
 
 }
