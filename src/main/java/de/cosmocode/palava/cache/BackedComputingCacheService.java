@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.MapMaker;
 import com.google.common.util.concurrent.Callables;
 import com.google.common.util.concurrent.ValueFuture;
@@ -183,29 +184,34 @@ final class BackedComputingCacheService implements ComputingCacheService {
     @Override
     public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final Queue<ValueFuture<Object>> futures = computations.get(key);
-        final Future<Object> future = futures.poll();
         
-        if (future == null) {
-            LOG.trace("Reading pre-computed value for {} from underlying cache", key);
-            // no running computation, the easy part
-            return service.<V>read(key);
-        } else {
-            try {
-                LOG.trace("Waiting for {} to compute value for key {}", future, key);
-                @SuppressWarnings("unchecked")
-                final V t = (V) future.get();
-                return t;
-            } catch (CancellationException e) {
-                LOG.debug("Computation for {} has been cancelled during read", key);
+        final V cached = service.<V>read(key);
+        
+        if (cached == null) {
+            LOG.trace("No pre-computed value for key '{}' exists, looking for computations", key);
+            final Future<Object> future = computations.get(key).peek();
+            
+            if (future == null) {
+                LOG.trace("No computation for key '{}', returning null", key);
                 return null;
-            } catch (InterruptedException e) {
-                LOG.warn("Thread has been interrupted during wait for {}", key);
-                return null;
-            } catch (ExecutionException e) {
-                LOG.warn("Exception while waiting for " + future, e.getCause());
-                return null;
+            } else {
+                try {
+                    LOG.trace("Waiting for {} to compute value for key '{}'", future, key);
+                    return cast(future.get());
+                } catch (CancellationException e) {
+                    LOG.debug("Computation for {} has been cancelled during read", key);
+                    return null;
+                } catch (InterruptedException e) {
+                    LOG.warn("Thread has been interrupted during wait for key '{}'", key);
+                    return null;
+                } catch (ExecutionException e) {
+                    LOG.warn("Exception while waiting for " + future, e.getCause());
+                    throw Throwables.propagate(e.getCause());
+                }
             }
+        } else {
+            LOG.trace("Reading pre-computed value for key '{}' from underlying cache", key);
+            return cached;
         }
     }
     
