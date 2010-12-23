@@ -130,12 +130,13 @@ final class BackedComputingCacheService implements ComputingCacheService {
         futures.add(future);
         
         try {
+            LOG.trace("Computing value for key '{}' using {}", key, callable);
             final V value = callable.call();
             
             if (future.isCancelled()) {
                 LOG.warn("{} has been cancelled", future);
             } else if (future.isDone()) {
-                LOG.debug("Another computation was faster and already computed a value for {}", key);
+                LOG.trace("Another computation was faster and already computed a value for key '{}'", key);
             } else {
                 LOG.trace("Computed value '{}' for key '{}'", value, key);
                 future.set(value);
@@ -159,9 +160,10 @@ final class BackedComputingCacheService implements ComputingCacheService {
             @SuppressWarnings("unchecked")
             final V returned = (V) future.get();
             if (returned == null) {
-                // key has been removed during computation, use what this computation produced
+                LOG.trace("Key '{}' has been removed during computation, returning value '{}'", key, value);
                 return value;
             } else {
+                LOG.trace("Returning value '{}' for key '{}'", returned, key);
                 return returned;
             }
         } catch (ExecutionException e) {
@@ -214,11 +216,11 @@ final class BackedComputingCacheService implements ComputingCacheService {
         final Queue<ValueFuture<Object>> futures = computations.get(key);
         
         if (futures.isEmpty()) {
-            LOG.trace("Removing {} from underlying cache", key);
+            LOG.trace("Removing key '{}' from underlying cache", key);
             // no running computation, the easy part
             return service.<V>remove(key);
         } else {
-            LOG.trace("Forcing all running computations for {} to return null", key);
+            LOG.trace("Forcing all running computations for key '{}' to return null", key);
             while (true) {
                 // get and remove in one shot
                 final ValueFuture<Object> future = futures.poll();
