@@ -34,8 +34,14 @@ public interface ComputingCacheService extends CacheService {
 
     /**
      * {@inheritDoc}
-     * 
-     * Equivalent to {@code service.store(key, value, service.getMaxAge(), TimeUnit.SECONDS)}.
+     *
+     * <p>
+     *   When a computation for the specified key is currently in progress,
+     *   that computation will be kept running but the specified value will
+     *   be used in favor of the already "old" value to be computed.
+     *   All threads waiting on {@link #read(Serializable)} will be returned
+     *   the given value.
+     * </p>
      * 
      * @see #store(Serializable, Object, long, TimeUnit)
      */
@@ -59,8 +65,6 @@ public interface ComputingCacheService extends CacheService {
     /**
      * Stores a computation and in case of success it's result in 
      * this cache using the specified key.
-     * 
-     * Equivalent to {@code service.computeAndStore(key, callable, service.getMaxAge(), TimeUnit.SECONDS)}.
      * 
      * @see #computeAndStore(Serializable, Callable, long, TimeUnit)
      * @since 2.4
@@ -121,9 +125,23 @@ public interface ComputingCacheService extends CacheService {
      *   computation is cancelled this method will return {@code null}.
      * </p>
      * 
+     * <p>
+     *   In case a pre a pre-computed (and old) value exists, it is returned
+     *   even if a computation for the given key is currently in progress.
+     * </p>
+     * 
+     * <p>
+     *   This leads to the following walkthrough:
+     *   <ol>
+     *     <li>if a pre-computed value exists, return it</li>
+     *     <li>if a computation is in progress, wait for it and return the result</li>
+     *     <li>return null</li>
+     *   </ol>
+     * </p>
+     * 
      * @since 2.4
      * @return an existing value or the new result of a finished computation
-     * @throws RuntimeException any exception thrown by the computing unit
+     * @throws RuntimeException any unchecked exception thrown by the computing unit
      */
     @Override
     <V> V read(Serializable key);
