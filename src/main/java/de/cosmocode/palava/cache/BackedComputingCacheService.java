@@ -122,12 +122,6 @@ final class BackedComputingCacheService implements ComputingCacheService {
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
 
-        return compute(key, callable, maxAge, maxAgeUnit);
-    }
-    
-    private <V> V compute(Serializable key, final Callable<? extends V> callable, long maxAge, TimeUnit maxAgeUnit) 
-        throws ExecutionException {
-        
         final Collection<ValueFuture<Object>> futures = computations.get(key);
         final ValueFuture<Object> future = ValueFuture.create();
 
