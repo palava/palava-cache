@@ -76,6 +76,7 @@ public interface CacheService {
     /**
      * Adds an object to the cache, using the given {@link CacheExpiration}.
      *
+     * @since 3.0
      * @param key the cache key
      * @param value the value being stored
      * @param expiration the configuration for when and how the entry should expire

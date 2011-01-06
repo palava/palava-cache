@@ -70,7 +70,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public void store(Serializable key, Object value) {
-        store(key, value, 0, TimeUnit.MILLISECONDS);
+        store(key, value, CacheExpiration.ETERNAL);
     }
 
     @Override
@@ -100,7 +100,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
-        return computeAndStore(key, callable, 0, TimeUnit.MILLISECONDS);
+        return computeAndStore(key, callable, CacheExpiration.ETERNAL);
     }
 
     @Override
