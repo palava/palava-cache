@@ -135,7 +135,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                 service.store(key, value, maxAge, maxAgeUnit);
             }
             
-            final V returned = cast(future.get());
+            final V returned = this.<V>cast(future.get());
             if (returned == null) {
                 LOG.trace("Key '{}' has been removed during computation, returning value '{}'", key, value);
                 return value;
@@ -174,7 +174,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
             } else {
                 try {
                     LOG.trace("Waiting for {} to compute value for key '{}'", future, key);
-                    return cast(future.get());
+                    return this.<V>cast(future.get());
                 } catch (CancellationException e) {
                     LOG.debug("Computation for {} has been cancelled during read", key);
                     return null;
