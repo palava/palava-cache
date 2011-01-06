@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,13 +84,23 @@ final class IdlingOutAgingEntry implements AgingEntry {
     @Override
     public <V> V getValue() {
         if (isExpired()) {
-            LOG.trace("Entry found but has idled out (no access since {})", lastAccess);
+            logExpiredMessage();
             return null;
         } else {
             lastAccess = System.currentTimeMillis();
             @SuppressWarnings("unchecked")
             final V typed = (V) value;
             return typed;
+        }
+    }
+
+    private void logExpiredMessage() {
+        if (LOG.isTraceEnabled()) {
+            if (getTimeSinceLastAccess(idleTimeUnit) > idleTime) {
+                LOG.trace("Entry found but has idled out (no access since {})", new Date(lastAccess));
+            } else {
+                LOG.trace("Entry found but was too old");
+            }
         }
     }
 
