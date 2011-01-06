@@ -88,6 +88,60 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     public void testStoreMaxAgeTimeUnitNull() {
         unit().store(1, "test", 10, null);
     }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, CacheExpiration)} with {@link CacheExpiration#ETERNAL}.
+     * It does not test that it is stored eternally, just that it gets stored.
+     */
+    @Test
+    public void testStoreWithCacheExpirationEternal() {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", CacheExpiration.ETERNAL);
+        Assert.assertEquals("TestEntry", unit.read(1));
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, CacheExpiration)}
+     * with a CacheExpiration where only the life time is set.
+     * @throws InterruptedException if the Thread.sleep is interrupted
+     */
+    @Test
+    public void testStoreWithLifeTime() throws InterruptedException {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", new CacheExpiration(50, TimeUnit.MILLISECONDS));
+        Thread.sleep(100);
+        Assert.assertNull("should be expired, but is not", unit.read(1));
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, CacheExpiration)}
+     * with a CacheExpiration where only the idle time is set.
+     * @throws InterruptedException if the Thread.sleep is interrupted
+     */
+    @Test
+    public void testStoreWithIdleTime() throws InterruptedException {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", new CacheExpiration(0, 50, TimeUnit.MILLISECONDS));
+        Thread.sleep(10);
+        Assert.assertEquals("TestEntry", unit.read(1));
+        Thread.sleep(100);
+        Assert.assertNull(unit.read(1));
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, CacheExpiration)}
+     * with a CacheExpiration where only the idle time is set.
+     * @throws InterruptedException if the Thread.sleep is interrupted
+     */
+    @Test
+    public void testStoreWithLifeAndIdleTime() throws InterruptedException {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", new CacheExpiration(50, 50, TimeUnit.MILLISECONDS));
+        Thread.sleep(20);
+        Assert.assertEquals("TestEntry", unit.read(1));
+        Thread.sleep(40);
+        Assert.assertNull(unit.read(1));
+    }
     
     /**
      * Testing Store-Function.

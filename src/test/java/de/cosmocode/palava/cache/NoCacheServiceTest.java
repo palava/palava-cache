@@ -25,7 +25,7 @@ import org.junit.Assert;
  * Test for {@link NoCacheService}.
  *
  * This test overwrites some methods which forces a {@link CacheService} to actually
- * cache an object when {@link CacheService#store(Serializable, Object) store} is called.
+ * cache an object when {@link CacheService#store(Serializable, Object)} is called.
  *
  * @since 2.3
  * @author Willi Schoenborn
@@ -41,6 +41,24 @@ public final class NoCacheServiceTest extends CacheServiceTest {
     public void testStoreWithMaxAgeZero() {
         final CacheService unit = unit();
         unit.store(1, "test", 0, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public void testStoreWithCacheExpirationEternal() {
+        final CacheService unit = unit();
+        unit.store(1, "test", CacheExpiration.ETERNAL);
+    }
+
+    @Override
+    public void testStoreWithIdleTime() throws InterruptedException {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", new CacheExpiration(0, 50, TimeUnit.MILLISECONDS));
+    }
+
+    @Override
+    public void testStoreWithLifeAndIdleTime() throws InterruptedException {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", new CacheExpiration(50, 50, TimeUnit.MILLISECONDS));
     }
 
     @Override
