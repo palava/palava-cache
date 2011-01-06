@@ -17,6 +17,7 @@
 package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 
@@ -37,9 +38,15 @@ public final class NoCacheServiceTest extends CacheServiceTest {
     }
 
     @Override
+    public void testStoreWithMaxAgeZero() {
+        final CacheService unit = unit();
+        unit.store(1, "test", 0, TimeUnit.MINUTES);
+    }
+
+    @Override
     public void testStoreAndRead() {
         final CacheService unit = unit();
-        unit.store(1 , "TestEntry");
+        unit.store(1, "TestEntry");
         Assert.assertNull(unit.read("null"));
     }
     
@@ -47,13 +54,13 @@ public final class NoCacheServiceTest extends CacheServiceTest {
     public void testStoreAndReadObject() {
         final Object value = new Object();
         final CacheService unit = unit();
-        unit.store(1 , value);
+        unit.store(1, value);
     }
     
     @Override
     public void testRemove() {
         final CacheService unit = unit();
-        unit.store(1 , "TestEntry");
+        unit.store(1, "TestEntry");
         Assert.assertTrue(unit.read(1) == null);
         Assert.assertNull(unit.remove("null"));
     }

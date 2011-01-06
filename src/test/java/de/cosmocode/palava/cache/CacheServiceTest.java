@@ -36,71 +36,7 @@ import de.cosmocode.junit.UnitProvider;
 public abstract class CacheServiceTest implements UnitProvider<CacheService> {
 
     /**
-     * Tests {@link CacheService#setMaxAge(long, TimeUnit)} with a negative value.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void setMaxAgeTimeUnitNegative() {
-        unit().setMaxAge(-1, TimeUnit.SECONDS);
-    }
-    
-    /**
-     * Tests {@link CacheService#setMaxAge(long, TimeUnit)} with a TimeUnit of null.
-     */
-    @Test(expected = NullPointerException.class)
-    public void setMaxAgeTimeUnitNull() {
-        unit().setMaxAge(10, null);
-    }
-    
-    /**
-     * Tests {@link CacheService#setMaxAge(long, TimeUnit)}.
-     */
-    @Test
-    public void setMaxAgeTimeUnit() {
-        final TimeUnit timeUnit = TimeUnit.HOURS;
-        final CacheService unit = unit();
-        unit.setMaxAge(5, timeUnit);
-        Assert.assertEquals(5, unit.getMaxAge(timeUnit));
-    }
-    
-    /**
-     * Tests {@link CacheService#setMaxAge(long)} with a negative value.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void setMaxAgeNegative() {
-        unit().setMaxAge(-1);
-    }
-    
-    /**
-     * Tests {@link CacheService#setMaxAge(long)}.
-     */
-    @Test
-    public void setMaxAge() {
-        final CacheService unit = unit();
-        unit.setMaxAge(30);
-        Assert.assertEquals(30, unit.getMaxAge());
-    }
-    
-    /**
-     * Tests {@link CacheService#store(java.io.Serializable, Object)}
-     * after calling {@link CacheService#setMaxAge(long, java.util.concurrent.TimeUnit)}
-     * with a max age of 1 second and waits till the time is expired.
-     * @throws InterruptedException if the Thread.sleep is interrupted
-     */
-    @Test
-    public void testStoreWithSetMaxAge() throws InterruptedException {
-        final int maxAge = 50;
-        final TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-        final Serializable key = 1;
-        final CacheService unit = unit();
-
-        unit.setMaxAge(maxAge, timeUnit);
-        unit.store(key, "TestEntry");
-        Thread.sleep(100);
-        Assert.assertNull("should be expired, but is not", unit.read(key));
-    }
-
-    /**
-     * Tests {@link CacheService#store(java.io.Serializable, Object, long, TimeUnit)}
+     * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)}
      * with a max age of 1 second and waits till the time is expired.
      * @throws InterruptedException if the Thread.sleep is interrupted
      */
@@ -114,6 +50,17 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         unit.store(key, "TestEntry", maxAge, timeUnit);
         Thread.sleep(100);
         Assert.assertNull("should be expired, but is not", unit.read(key));
+    }
+
+    /**
+     * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)}
+     * with a maxAge of zero, which should still mean that it gets cached.
+     */
+    @Test
+    public void testStoreWithMaxAgeZero() {
+        final CacheService unit = unit();
+        unit.store(1, "TestEntry", 0, TimeUnit.MINUTES);
+        Assert.assertEquals("TestEntry", unit.read(1));
     }
 
     /**

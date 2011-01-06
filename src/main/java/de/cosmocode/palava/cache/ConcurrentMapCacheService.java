@@ -47,9 +47,10 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     private int maximumSize;
     private int initialCapacity = 16;
     private int concurrencyLevel = 16;
-    
-    private long defaultMaxAge = CacheService.DEFAULT_MAX_AGE;
-    private TimeUnit defaultMaxAgeUnit = CacheService.DEFAULT_MAX_AGE_TIMEUNIT;
+
+    // defaultMaxAge is 0, which means no max age by interface definition
+    private long defaultMaxAge;
+    private TimeUnit defaultMaxAgeUnit = TimeUnit.MINUTES;
     
     private ConcurrentMap<Serializable, AgingEntry> cache;
     
@@ -109,33 +110,20 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
         
         this.cache = maker.makeComputingMap(AgedEntry.INSTANCE);
     }
-    
-    @Override
-    public long getMaxAge() {
-        return defaultMaxAgeUnit.toSeconds(defaultMaxAge);
-    }
 
-    @Override
-    public long getMaxAge(TimeUnit unit) {
-        Preconditions.checkNotNull(unit, "Unit");
-        return unit.convert(defaultMaxAge, defaultMaxAgeUnit);
-    }
-
-    @Override
-    public void setMaxAge(long maxAgeInSeconds) {
-        Preconditions.checkArgument(maxAgeInSeconds >= 0, "Max age must not be negative");
-        this.defaultMaxAge = defaultMaxAgeUnit.convert(maxAgeInSeconds, TimeUnit.SECONDS);
-    }
-
-    @Override
+    /**
+     * Sets the max age to the given value.
+     * @param maxAge the maximum age for an entry to live
+     */
     @Inject(optional = true)
-    public void setMaxAge(
-        @Named(ConcurrentMapCacheConfig.MAX_AGE) long maxAge, 
-        @Named(ConcurrentMapCacheConfig.MAX_AGE_UNIT) TimeUnit maxAgeUnit) {
+    void setMaxAge(@Named(ConcurrentMapCacheConfig.MAX_AGE) long maxAge) {
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
         this.defaultMaxAge = maxAge;
-        this.defaultMaxAgeUnit = maxAgeUnit;
+    }
+
+    @Inject(optional = true)
+    void setMaxAgeUnit(@Named(ConcurrentMapCacheConfig.MAX_AGE_UNIT) TimeUnit maxAgeUnit) {
+        this.defaultMaxAgeUnit = Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
     }
     
     @Inject(optional = true)

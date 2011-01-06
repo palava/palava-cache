@@ -29,32 +29,6 @@ import com.google.common.base.Preconditions;
  */
 final class NoCacheService implements CacheService {
 
-    private long maxAgeInSeconds;
-    
-    @Override
-    public long getMaxAge() {
-        return maxAgeInSeconds;
-    }
-
-    @Override
-    public long getMaxAge(TimeUnit unit) {
-        Preconditions.checkNotNull(unit, "Unit");
-        return unit.convert(maxAgeInSeconds, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void setMaxAge(long maxAgeSeconds) {
-        Preconditions.checkArgument(maxAgeSeconds >= 0, "Max age must not be negative");
-        this.maxAgeInSeconds = maxAgeSeconds;
-    }
-
-    @Override
-    public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
-        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        this.maxAgeInSeconds = maxAgeUnit.toSeconds(maxAge);
-    }
-
     @Override
     public void store(Serializable key, Object value) {
         Preconditions.checkNotNull(key, "Key");

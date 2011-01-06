@@ -69,31 +69,8 @@ final class BackedComputingCacheService implements ComputingCacheService {
     }
 
     @Override
-    public long getMaxAge() {
-        return getMaxAge(TimeUnit.SECONDS);
-    }
-
-    @Override
-    public long getMaxAge(TimeUnit unit) {
-        Preconditions.checkNotNull(unit, "Unit");
-        return service.getMaxAge(unit);
-    }
-
-    @Override
-    public void setMaxAge(long maxAgeSeconds) {
-        setMaxAge(maxAgeSeconds, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void setMaxAge(long maxAge, TimeUnit maxAgeUnit) {
-        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        service.setMaxAge(maxAge, maxAgeUnit);
-    }
-
-    @Override
     public void store(Serializable key, Object value) {
-        store(key, value, getMaxAge(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+        store(key, value, 0, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -111,7 +88,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
 
     @Override
     public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
-        return computeAndStore(key, callable, getMaxAge(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+        return computeAndStore(key, callable, 0, TimeUnit.MILLISECONDS);
     }
     
     @Override

@@ -30,66 +30,16 @@ import java.util.concurrent.TimeUnit;
  * @author Oliver Lorenz
  */
 public interface CacheService {
-    
-    long DEFAULT_MAX_AGE = Long.MAX_VALUE;
-    
-    TimeUnit DEFAULT_MAX_AGE_TIMEUNIT = TimeUnit.DAYS;
-    
-    /**
-     * Returns the max age for every stored item, in seconds.
-     *  
-     * @return the max age in seconds
-     */
-    long getMaxAge();
-    
-    /**
-     * Returns the default max age for every stored item.
-     * The result is converted using the given TimeUnit.
-     * 
-     * @param unit the TimeUnit in which the max Age value is returned
-     * @return the max age, in the given TimeUnit
-     * @throws NullPointerException if unit is null
-     */
-    long getMaxAge(TimeUnit unit);
-    
-    /**
-     * Sets the maximum age for the store method, in seconds.
-     * This method calls {@link #setMaxAge(long, TimeUnit)} with {@link TimeUnit#SECONDS}.
-     * 
-     * @param maxAgeInSeconds the maximum age of every stored item
-     * @throws IllegalArgumentException if maxAgeInSeconds is negative
-     * @see #setMaxAge(long, TimeUnit)
-     */
-    void setMaxAge(long maxAgeInSeconds);
-    
-    /**
-     * <p>
-     *   Sets the maximum age for the store method.
-     *   The given value is then used as a default for {@link #store(Serializable, Object)}.
-     *   This can be called in a configuration stage to set an explicit maxAge.
-     * </p>
-     * <p>
-     *   A negative maxAge is illegal and results in an IllegalArgumentException.
-     *   If eternal caching is intended use {@link #DEFAULT_MAX_AGE} and {@link #DEFAULT_MAX_AGE_TIMEUNIT}.
-     * </p>
-     * <p>
-     *   The default max age is DEFAULT_MAX_AGE with DEFAULT_MAX_AGE_TIMEUNIT,
-     *   which is equivalent to an eternal caching.
-     * </p>
-     * <p>
-     *   Note: {@link #store(Serializable, Object, long, TimeUnit)} overrides the default value
-     *   with its given parameters. 
-     * </p>
-     * 
-     * @param maxAge the new default maxAge for every stored item
-     * @param maxAgeUnit the TimeUnit for maxAge
-     * @throws IllegalArgumentException if maxAge is negative
-     * @throws NullPointerException if maxAgeUnit is null
-     */
-    void setMaxAge(long maxAge, TimeUnit maxAgeUnit);
 
     /**
-     * Adds an object to the cache. 
+     * Adds an object to the cache.
+     *
+     * <p>
+     *   It is not guaranteed that the value will remain in the cache forever.
+     *   The implementation may evict some cached values due to outside limitations
+     *   (e.g. a full memory) or because it was configured to evict it after a certain time,
+     *   but it should otherwise attempt to cache the value as long as possible.
+     * </p>
      * 
      * @param key the cache key
      * @param value the value being stored
