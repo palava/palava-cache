@@ -118,7 +118,7 @@ public final class CacheExpiration implements Serializable {
      *   and at most for the amount of time in lifeTime.
      * </p>
      *
-     * @param lifeTime the maximum amount of time for the cached value to live, in lifeTimeUnit; 0 means forever
+     * @param lifeTime the maximum amount of time for the cached value to live; 0 means forever
      * @param lifeTimeUnit the TimeUnit for lifeTime
      * @param idleTime the maximum amount of time a value "survives" between reads; 0 means no idle checks
      * @param idleTimeUnit the TimeUnit for idleTime
@@ -135,6 +135,19 @@ public final class CacheExpiration implements Serializable {
         this.lifeTimeUnit = lifeTimeUnit;
         this.idleTime = idleTime;
         this.idleTimeUnit = idleTimeUnit;
+    }
+
+    /**
+     * Convenience constructor in the case that both life time and idle time are in the same TimeUnit.
+     * This is equivalent to: {@code new CacheExpiration(lifeTime, unit, idleTime, unit)}.
+     *
+     * @see #CacheExpiration(long, TimeUnit, long, TimeUnit)
+     * @param lifeTime the maximum amount of time for the cached value to live; 0 means forever
+     * @param idleTime the maximum amount of time a value "survives" between reads; 0 means no idle checks
+     * @param unit the TimeUnit for both lifeTime and idleTime
+     */
+    public CacheExpiration(long lifeTime, long idleTime, TimeUnit unit) {
+        this(lifeTime, unit, idleTime, unit);
     }
 
     /**
