@@ -42,6 +42,12 @@ final class NoCacheService implements CacheService {
     }
 
     @Override
+    public void store(Serializable key, Object value, CacheExpiration expiration) {
+        Preconditions.checkNotNull(key, "Key");
+        Preconditions.checkNotNull(expiration, "Expiration");
+    }
+
+    @Override
     public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         return null;

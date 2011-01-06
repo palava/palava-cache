@@ -87,6 +87,14 @@ final class BackedComputingCacheService implements ComputingCacheService {
     }
 
     @Override
+    public void store(Serializable key, Object value, CacheExpiration expiration) {
+        Preconditions.checkNotNull(key, "Key");
+        Preconditions.checkNotNull(expiration, "Expiration");
+
+        store(key, value, expiration.getLifeTime(), expiration.getLifeTimeUnit());
+    }
+
+    @Override
     public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
         return computeAndStore(key, callable, 0, TimeUnit.MILLISECONDS);
     }

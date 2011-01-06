@@ -144,7 +144,7 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     @Override
     public void store(Serializable key, Object value) {
         Preconditions.checkNotNull(key, "Key");
-        store(key, value, defaultMaxAge, defaultMaxAgeUnit);
+        store(key, value, new CacheExpiration(defaultMaxAge, defaultMaxAgeUnit));
     }
 
     @Override
@@ -152,7 +152,20 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
         Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        cache.put(key, new SimpleAgingEntry(value, maxAge, maxAgeUnit));
+        store(key, value, new CacheExpiration(maxAge, maxAgeUnit));
+    }
+
+    @Override
+    public void store(Serializable key, Object value, CacheExpiration expiration) {
+        Preconditions.checkNotNull(key, "Key");
+        Preconditions.checkNotNull(expiration, "Expiration");
+        if (expiration.isEternal()) {
+            cache.put(key, new ImmortalEntry(value));
+        } else if (expiration.getIdleTime() == 0L) {
+            cache.put(key, new SimpleAgingEntry(value, expiration.getLifeTime(), expiration.getLifeTimeUnit()));
+        } else {
+            cache.put(key, new IdlingOutAgingEntry(value, expiration));
+        }
     }
 
     @Override
