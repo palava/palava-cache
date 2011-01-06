@@ -61,7 +61,23 @@ public interface ComputingCacheService extends CacheService {
      */
     @Override
     void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit);
-    
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>
+     *   When a computation for the specified key is currently in progress,
+     *   that computation will be kept running but the specified value will
+     *   be used in favor of the already "old" value to be computed.
+     *   All threads waiting on {@link #read(Serializable)} will be returned
+     *   the given value.
+     * </p>
+     *
+     * @throws NullPointerException if key or expiration is null
+     */
+    @Override
+    void store(Serializable key, Object value, CacheExpiration expiration);
+
     /**
      * Stores a computation and in case of success it's result in 
      * this cache using the specified key.
@@ -114,6 +130,25 @@ public interface ComputingCacheService extends CacheService {
      *         propagated directly, any other exception will be wrapped
      */
     <V> V computeAndStore(Serializable key, Callable<? extends V> callable, long maxAge, TimeUnit maxAgeUnit) 
+        throws CancellationException, ExecutionException;
+
+    /**
+     * Adds an object to the cache, using the given {@link CacheExpiration}.
+     *
+     * @see #computeAndStore(Serializable, Callable, long, TimeUnit)
+     * @see #store(java.io.Serializable, Object, CacheExpiration)
+     * @since 3.0
+     * @param <V> the generic value type
+     * @param key the key under which the result will be found
+     * @param callable the computing callable
+     * @param expiration the configuration for when and how the entry should expire
+     * @return the computed value
+     * @throws NullPointerException if key, callable or expiration is null
+     * @throws CancellationException if the computation was cancelled
+     * @throws ExecutionException if callable throws an {@link ExecutionException} it will be
+     *         propagated directly, any other exception will be wrapped
+     */
+    <V> V computeAndStore(Serializable key, Callable<? extends V> callable, CacheExpiration expiration)
         throws CancellationException, ExecutionException;
     
     /**

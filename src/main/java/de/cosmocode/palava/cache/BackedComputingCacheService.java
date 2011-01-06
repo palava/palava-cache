@@ -91,22 +91,34 @@ final class BackedComputingCacheService implements ComputingCacheService {
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkNotNull(expiration, "Expiration");
 
-        store(key, value, expiration.getLifeTime(), expiration.getLifeTimeUnit());
+        try {
+            computeAndStore(key, Callables.returning(value), expiration);
+        } catch (ExecutionException e) {
+            throw new IllegalArgumentException(e.getCause());
+        }
     }
 
     @Override
     public <V> V computeAndStore(Serializable key, Callable<? extends V> callable) throws ExecutionException {
         return computeAndStore(key, callable, 0, TimeUnit.MILLISECONDS);
     }
-    
+
     @Override
-    public <V> V computeAndStore(Serializable key, final Callable<? extends V> callable, 
+    public <V> V computeAndStore(Serializable key, final Callable<? extends V> callable,
             long maxAge, TimeUnit maxAgeUnit) throws ExecutionException {
+
+        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
+        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
+        return computeAndStore(key, callable, new CacheExpiration(maxAge, maxAgeUnit));
+    }
+
+    @Override
+    public <V> V computeAndStore(Serializable key, Callable<? extends V> callable,
+            CacheExpiration expiration) throws ExecutionException {
         
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkNotNull(callable, "Callable");
-        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
+        Preconditions.checkNotNull(expiration, "Expiration");
 
         final Collection<ValueFuture<Object>> futures = computations.get(key);
         final ValueFuture<Object> future = ValueFuture.create();
@@ -140,7 +152,7 @@ final class BackedComputingCacheService implements ComputingCacheService {
                     }
                 }
                 LOG.trace("Storing '{}' to '{}' in underlying store", key, value);
-                service.store(key, value, maxAge, maxAgeUnit);
+                service.store(key, value, expiration);
             }
             
             final V returned = this.<V>cast(future.get());
