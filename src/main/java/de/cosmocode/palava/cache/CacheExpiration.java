@@ -44,7 +44,7 @@ public final class CacheExpiration implements Serializable {
     /**
      * Constant CacheExpiration that never expires.
      */
-    public static final CacheExpiration NEVER = new CacheExpiration(0L, TimeUnit.MINUTES, 0L, TimeUnit.MINUTES);
+    public static final CacheExpiration ETERNAL = new CacheExpiration(0L, TimeUnit.MINUTES, 0L, TimeUnit.MINUTES);
 
     private final long lifeTime;
     private final TimeUnit lifeTimeUnit;
@@ -60,7 +60,7 @@ public final class CacheExpiration implements Serializable {
      *   If lifeTime is 0 then it means that the value should never expire.
      *   The cache entry may still be removed from the CacheService
      *   if outside limitations occur (e.g. when the application runs out of memory).
-     *   The constant {@link CacheExpiration#NEVER} is already configured this way.
+     *   The constant {@link CacheExpiration#ETERNAL} is already configured this way.
      * </p>
      * <p>
      *   If lifeTime is greater than 0
@@ -93,7 +93,7 @@ public final class CacheExpiration implements Serializable {
      *   If both lifeTime and idleTime are 0 then it means that the value should never expire.
      *   The cache entry may still be removed from the CacheService
      *   if outside limitations occur (e.g. when the application runs out of memory).
-     *   The constant {@link CacheExpiration#NEVER} is already configured this way.
+     *   The constant {@link CacheExpiration#ETERNAL} is already configured this way.
      * </p>
      * <p>
      *   If lifeTime is 0 and idleTime is greater than 0
