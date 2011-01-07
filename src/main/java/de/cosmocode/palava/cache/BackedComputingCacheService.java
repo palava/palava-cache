@@ -43,12 +43,12 @@ final class BackedComputingCacheService extends AbstractComputingCacheService {
 
     @Override
     protected <V> V doRead(Serializable key) {
-        return service.read(key);
+        return service.<V>read(key);
     }
 
     @Override
     protected <V> V doRemove(Serializable key) {
-        return service.remove(key);
+        return service.<V>remove(key);
     }
 
     @Override

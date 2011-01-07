@@ -123,7 +123,7 @@ public abstract class AbstractComputingCacheService extends AbstractCacheService
                 doStore(key, value, expiration);
             }
             
-            final V returned = cast(future.get());
+            final V returned = this.<V>cast(future.get());
             if (returned == null) {
                 log.trace("Key '{}' has been removed during computation, returning value '{}'", key, value);
                 return value;
@@ -161,7 +161,7 @@ public abstract class AbstractComputingCacheService extends AbstractCacheService
     public final <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
         
-        final V cached = doRead(key);
+        final V cached = this.<V>doRead(key);
         
         if (cached == null) {
             log.trace("No pre-computed value for key '{}' exists, looking for computations", key);
@@ -173,7 +173,7 @@ public abstract class AbstractComputingCacheService extends AbstractCacheService
             } else {
                 try {
                     log.trace("Waiting for {} to compute value for key '{}'", future, key);
-                    return cast(future.get());
+                    return this.<V>cast(future.get());
                 } catch (CancellationException e) {
                     log.debug("Computation for {} has been cancelled during read", key);
                     return null;
@@ -215,7 +215,7 @@ public abstract class AbstractComputingCacheService extends AbstractCacheService
         if (futures.isEmpty()) {
             log.trace("Removing key '{}' from underlying cache", key);
             // no running computation, the easy part
-            return doRemove(key);
+            return this.<V>doRemove(key);
         } else {
             log.trace("Forcing all running computations for key '{}' to return null", key);
             while (true) {
@@ -233,7 +233,7 @@ public abstract class AbstractComputingCacheService extends AbstractCacheService
                 }
             }
             // make sure the underlying cache removes any pre-computed value
-            return doRemove(key);
+            return this.<V>doRemove(key);
         }
     }
     
