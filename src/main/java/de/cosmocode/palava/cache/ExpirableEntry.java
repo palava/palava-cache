@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2.4
  * @author Willi Schoenborn
  */
-interface AgingEntry {
+interface ExpirableEntry {
 
     /**
      * Returns the timestamp of this entry.

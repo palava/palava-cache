@@ -18,7 +18,6 @@ package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +47,7 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     private int initialCapacity = 16;
     private int concurrencyLevel = 16;
 
-    // defaultMaxAge is 0, which means no max age by interface definition
-    private long defaultMaxAge;
-    private TimeUnit defaultMaxAgeUnit = TimeUnit.MINUTES;
-    
-    private ConcurrentMap<Serializable, AgingEntry> cache;
+    private ConcurrentMap<Serializable, ExpirableEntry> cache;
     
     @Override
     public void initialize() throws LifecycleException {
@@ -108,24 +103,9 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
             LOG.info("Limiting to {} elements", maximumSize);
         }
         
-        this.cache = maker.makeComputingMap(AgedEntry.INSTANCE);
+        this.cache = maker.makeMap();
     }
 
-    /**
-     * Sets the max age to the given value.
-     * @param maxAge the maximum age for an entry to live
-     */
-    @Inject(optional = true)
-    void setMaxAge(@Named(ConcurrentMapCacheConfig.MAX_AGE) long maxAge) {
-        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        this.defaultMaxAge = maxAge;
-    }
-
-    @Inject(optional = true)
-    void setMaxAgeUnit(@Named(ConcurrentMapCacheConfig.MAX_AGE_UNIT) TimeUnit maxAgeUnit) {
-        this.defaultMaxAgeUnit = Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-    }
-    
     @Inject(optional = true)
     void setMaximumSize(@Named(ConcurrentMapCacheConfig.MAXIMUM_SIZE) int maximumSize) {
         this.maximumSize = maximumSize;
@@ -144,42 +124,36 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     @Override
     public void store(Serializable key, Object value) {
         Preconditions.checkNotNull(key, "Key");
-        store(key, value, new CacheExpiration(defaultMaxAge, defaultMaxAgeUnit));
-    }
-
-    @Override
-    public void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit) {
-        Preconditions.checkNotNull(key, "Key");
-        Preconditions.checkArgument(maxAge >= 0, "Max age must not be negative");
-        Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");
-        store(key, value, new CacheExpiration(maxAge, maxAgeUnit));
+        store(key, value, CacheExpirations.ETERNAL);
     }
 
     @Override
     public void store(Serializable key, Object value, CacheExpiration expiration) {
         Preconditions.checkNotNull(key, "Key");
         Preconditions.checkNotNull(expiration, "Expiration");
-        if (expiration.isEternal()) {
-            cache.put(key, new ImmortalEntry(value));
-        } else if (expiration.getIdleTime() == 0L) {
-            cache.put(key, new SimpleAgingEntry(value, expiration.getLifeTime(), expiration.getLifeTimeUnit()));
-        } else {
-            cache.put(key, new IdlingOutAgingEntry(value, expiration));
-        }
+        final ExpirableEntry entry = ExpirableEntries.create(expiration, value);
+        cache.put(key, entry);
     }
 
     @Override
     public <V> V read(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        return cache.get(key).<V>getValue();
+        final ExpirableEntry entry = cache.get(key);
+        if (entry == null) {
+            return null;
+        } else if (entry.isExpired()) {
+            remove(key);
+            return null;
+        } else {
+            return entry.<V>getValue();
+        }
     }
 
     @Override
     public <V> V remove(Serializable key) {
         Preconditions.checkNotNull(key, "Key");
-        final V value = this.<V>read(key);
-        cache.remove(key);
-        return value;
+        final ExpirableEntry entry = cache.remove(key);
+        return entry == null ? null : entry.<V>getValue();
     }
 
     @Override

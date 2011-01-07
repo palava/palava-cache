@@ -16,51 +16,51 @@
 
 package de.cosmocode.palava.cache;
 
-import java.io.Serializable;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
-/**
- * A constant {@link AgingEntry} which is always expired.
- * 
- * @author Willi Schoenborn
- */
-enum AgedEntry implements AgingEntry, Function<Serializable, AgingEntry> {
+import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
 
-    INSTANCE;
-    
-    private static final Logger LOG = LoggerFactory.getLogger(AgedEntry.class);
-    
+/**
+ * <p>
+ * An {@link ExpirableEntry} that never expires.
+ * </p>
+ * <p>
+ * Created on: 06.01.11
+ * </p>
+ *
+ * @since 3.0
+ * @author Oliver Lorenz
+ */
+final class EternalEntry implements ExpirableEntry {
+
+    private final long timestamp = System.currentTimeMillis();
+    private final Object value;
+
+    public EternalEntry(@Nullable Object value) {
+        this.value = value;
+    }
+
     @Override
     public long getTimestamp() {
-        return 0;
+        return timestamp;
     }
-    
+
     @Override
     public long getAge(TimeUnit unit) {
         Preconditions.checkNotNull(unit, "Unit");
-        return unit.convert(Long.MAX_VALUE, TimeUnit.DAYS);
+        return unit.convert(System.currentTimeMillis() - timestamp, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public boolean isExpired() {
-        return true;
-    }
-    
-    @Override
-    public <V> V getValue() {
-        LOG.trace("No entry found");
-        return null;
+        return false;
     }
 
     @Override
-    public AgingEntry apply(Serializable key) {
-        return this;
+    @SuppressWarnings("unchecked")
+    public <V> V getValue() {
+        return (V) value;
     }
-    
+
 }

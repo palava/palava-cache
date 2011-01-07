@@ -17,7 +17,6 @@
 package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -47,32 +46,6 @@ public interface CacheService {
      */
     void store(Serializable key, Object value);
     
-    /**
-     * Adds an object to the cache.
-     *
-     * <p>
-     *   The maxAge parameter determines the maximum age that the value should live.
-     *   This means that once the maxAge has passed, a {@link #read(Serializable)}
-     *   with the given key returns null until a new value has been stored for the key.
-     *   Depending on the implementation this may happen sooner than defined by maxAge
-     *   because of outside limitations (e.g a full memory).
-     * </p>
-     * <p>
-     *   <strong>Important:</strong>
-     *   If maxAge is 0 then it means that the value never expires.
-     *   This means that calling it this way has the same effect
-     *   as calling {@link #store(Serializable, Object)} instead.
-     * </p>
-     *
-     * @param key the cache key
-     * @param value the value being stored
-     * @param maxAge the maximum amount of time that the stored value should be cached, in `maxAgeUnit`
-     * @param maxAgeUnit the TimeUnit of the maxAge (like DAYS, SECONDS, etc.)
-     * @throws NullPointerException if key or maxAgeUnit is null
-     * @throws IllegalArgumentException if maxAge is negative
-     */
-    void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit);
-
     /**
      * Adds an object to the cache, using the given {@link CacheExpiration}.
      *
