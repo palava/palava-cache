@@ -17,8 +17,11 @@
 package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -211,7 +214,8 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test
     public void testStoreAndReadObject() {
-        final Object value = new Object();
+        // construct a non-serializable Map
+        final Object value = new NonSerializableMap();
         final CacheService unit = unit();
 
         unit.store(1 , value);
@@ -269,6 +273,16 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         unit.clear();
         for (int j = 0; j < 10; j++) {
             Assert.assertSame(null, unit.read(j));
+        }
+    }
+
+    private static class NonSerializableMap extends ForwardingMap<Object, Object> {
+
+        private final Map<Object, Object> original = Maps.newHashMap();
+
+        @Override
+        protected Map<Object, Object> delegate() {
+            return original;
         }
     }
 }
