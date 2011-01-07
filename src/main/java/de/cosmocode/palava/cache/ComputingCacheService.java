@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A special {@link CacheService} which allows storing computations
@@ -42,8 +41,6 @@ public interface ComputingCacheService extends CacheService {
      *   All threads waiting on {@link #read(Serializable)} will be returned
      *   the given value.
      * </p>
-     * 
-     * @see #store(Serializable, Object, long, TimeUnit)
      */
     @Override
     void store(Serializable key, Object value);
@@ -68,7 +65,6 @@ public interface ComputingCacheService extends CacheService {
      * Stores a computation and in case of success it's result in 
      * this cache using the specified key.
      * 
-     * @see #computeAndStore(Serializable, Callable, long, TimeUnit)
      * @since 2.4
      * @param <V> the generic value type
      * @param key the key under which the result will be found
