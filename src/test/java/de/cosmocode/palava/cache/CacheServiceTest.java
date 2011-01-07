@@ -28,12 +28,61 @@ import de.cosmocode.junit.UnitProvider;
 
 /**
  * Abstract test-class for CacheService.
+ *
+ * <p>
+ *   The following methods can be overridden if the cache can not handle millisecond precision expiration:
+ *   {@link #lifeTime()}, {@link #idleTime()}, {@link #sleepBeforeIdleTime()}, {@link #sleepBeforeIdleTime()},
+ *   {@link #timeUnit()}.
+ * </p>
  * 
  * @author Markus Baumann
- * @author Oliver Lorenz (everything with maxAge)
+ * @author Oliver Lorenz (everything with life and idle time)
  */
 @RunWith(LoggingRunner.class)
 public abstract class CacheServiceTest implements UnitProvider<CacheService> {
+
+    /**
+     * The life time for testing, in {@link #timeUnit()}.
+     * @return the life time for testing
+     */
+    protected long lifeTime() {
+        return 50;
+    }
+
+    /**
+     * The idle time for testing, in {@link #timeUnit()}.
+     * @return the idle time for testing
+     */
+    protected long idleTime() {
+        return 50;
+    }
+
+    /**
+     * Returns a time in {@link #timeUnit()} after which the element has not idled out,
+     * so that a read still returns the element.
+     * @return the time (to sleep) after which a read still returns the element
+     */
+    protected long sleepBeforeIdleTime() {
+        return 40;
+    }
+
+    /**
+     * Returns the time in milliseconds after which the cached element is expired,
+     * either because it idled out or the life time has been reached.
+     * @return the time (to sleep) after which the element has definitely expired
+     */
+    protected long sleepTimeExpires() {
+        return 100;
+    }
+
+    /**
+     * Returns the timeunit for {@link #lifeTime()}, {@link #idleTime()}, {@link #sleepTimeExpires()}
+     * and {@link #sleepBeforeIdleTime()}.
+     * @return the TimeUnit used for testing
+     */
+    protected TimeUnit timeUnit() {
+        return TimeUnit.MILLISECONDS;
+    }
 
     /**
      * Tests {@link CacheService#store(Serializable, Object, long, TimeUnit)}
@@ -42,13 +91,11 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test
     public void testStoreWithMaxAge() throws InterruptedException {
-        final int maxAge = 50;
-        final TimeUnit timeUnit = TimeUnit.MILLISECONDS;
         final Serializable key = 1;
         final CacheService unit = unit();
 
-        unit.store(key, "TestEntry", maxAge, timeUnit);
-        Thread.sleep(100);
+        unit.store(key, "TestEntry", lifeTime(), timeUnit());
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepTimeExpires(), timeUnit()));
         Assert.assertNull("should be expired, but is not", unit.read(key));
     }
 
@@ -59,7 +106,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     @Test
     public void testStoreWithMaxAgeZero() {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", 0, TimeUnit.MINUTES);
+        unit.store(1, "TestEntry", 0, timeUnit());
         Assert.assertEquals("TestEntry", unit.read(1));
     }
 
@@ -68,7 +115,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testStoreMaxAgeNegative() {
-        unit().store(1, "test", -1, TimeUnit.SECONDS);
+        unit().store(1, "test", -1, timeUnit());
     }
 
     /**
@@ -77,7 +124,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
      */
     @Test(expected = NullPointerException.class)
     public void testStoreMaxAgeKeyNull() {
-        unit().store(null, "test", 10, TimeUnit.SECONDS);
+        unit().store(null, "test", 10, timeUnit());
     }
     
     /**
@@ -91,12 +138,14 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
 
     /**
      * Tests {@link CacheService#store(Serializable, Object, CacheExpiration)} with {@link CacheExpiration#ETERNAL}.
-     * It does not test that it is stored eternally, just that it gets stored.
+     * It does not test that it is stored eternally, just that it is stored beyond the expiration sleep time.
+     * @throws InterruptedException if the Thread.sleep is interrupted
      */
     @Test
-    public void testStoreWithCacheExpirationEternal() {
+    public void testStoreWithCacheExpirationEternal() throws InterruptedException {
         final CacheService unit = unit();
         unit.store(1, "TestEntry", CacheExpiration.ETERNAL);
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepTimeExpires(), timeUnit()));
         Assert.assertEquals("TestEntry", unit.read(1));
     }
 
@@ -108,8 +157,8 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     @Test
     public void testStoreWithLifeTime() throws InterruptedException {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", new CacheExpiration(50, TimeUnit.MILLISECONDS));
-        Thread.sleep(100);
+        unit.store(1, "TestEntry", new CacheExpiration(lifeTime(), timeUnit()));
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepTimeExpires(), timeUnit()));
         Assert.assertNull("should be expired, but is not", unit.read(1));
     }
 
@@ -121,11 +170,11 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     @Test
     public void testStoreWithIdleTime() throws InterruptedException {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", new CacheExpiration(0, 50, TimeUnit.MILLISECONDS));
-        Thread.sleep(10);
-        Assert.assertEquals("TestEntry", unit.read(1));
-        Thread.sleep(100);
-        Assert.assertNull(unit.read(1));
+        unit.store(1, "TestEntry", new CacheExpiration(0L, idleTime(), timeUnit()));
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepBeforeIdleTime(), timeUnit()));
+        Assert.assertEquals("Entry has idled out too early", "TestEntry", unit.read(1));
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepTimeExpires(), timeUnit()));
+        Assert.assertNull("should be expired, but is not", unit.read(1));
     }
 
     /**
@@ -136,11 +185,11 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
     @Test
     public void testStoreWithLifeAndIdleTime() throws InterruptedException {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", new CacheExpiration(50, 50, TimeUnit.MILLISECONDS));
-        Thread.sleep(20);
-        Assert.assertEquals("TestEntry", unit.read(1));
-        Thread.sleep(40);
-        Assert.assertNull(unit.read(1));
+        unit.store(1, "TestEntry", new CacheExpiration(lifeTime(), idleTime(), timeUnit()));
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepBeforeIdleTime(), timeUnit()));
+        Assert.assertEquals("Entry has idled out too early", "TestEntry", unit.read(1));
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepTimeExpires(), timeUnit()));
+        Assert.assertNull("should be expired, but is not", unit.read(1));
     }
     
     /**
