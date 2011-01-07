@@ -31,16 +31,16 @@ import com.google.common.base.Preconditions;
  * @since 2.4
  * @author Willi Schoenborn
  */
-final class SimpleAgingEntry implements AgingEntry {
+final class SimpleExpirableEntry implements ExpirableEntry {
     
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleAgingEntry.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleExpirableEntry.class);
     
     private final long timestamp = System.currentTimeMillis();
     private final Object value;
     private final long maxAge;
     private final TimeUnit maxAgeUnit;
     
-    public SimpleAgingEntry(@Nullable Object value, long maxAge, TimeUnit maxAgeUnit) {
+    public SimpleExpirableEntry(@Nullable Object value, long maxAge, TimeUnit maxAgeUnit) {
         this.value = value;
         this.maxAge = maxAge;
         this.maxAgeUnit = Preconditions.checkNotNull(maxAgeUnit, "MaxAgeUnit");

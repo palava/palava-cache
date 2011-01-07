@@ -18,42 +18,17 @@ package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
 
-import com.google.common.base.Preconditions;
-
 /**
- * Noop {@link CacheService} implementation.
+ * Abstract {@link CacheService} implementation.
  *
- * @since 2.3
+ * @since 3.0
  * @author Willi Schoenborn
  */
-final class NoCacheService implements CacheService {
+public abstract class AbstractCacheService implements CacheService {
 
     @Override
     public void store(Serializable key, Object value) {
-        Preconditions.checkNotNull(key, "Key");
+        store(key, value, CacheExpirations.ETERNAL);
     }
-
-    @Override
-    public void store(Serializable key, Object value, CacheExpiration expiration) {
-        Preconditions.checkNotNull(key, "Key");
-        Preconditions.checkNotNull(expiration, "Expiration");
-    }
-
-    @Override
-    public <V> V read(Serializable key) {
-        Preconditions.checkNotNull(key, "Key");
-        return null;
-    }
-
-    @Override
-    public <V> V remove(Serializable key) {
-        Preconditions.checkNotNull(key, "Key");
-        return null;
-    }
-
-    @Override
-    public void clear() {
-
-    }
-
+    
 }

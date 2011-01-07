@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
- * An {@link AgingEntry} that expires if it has not been accessed since a given amount of time.
+ * An {@link ExpirableEntry} that expires if it has not been accessed since a given amount of time.
  * </p>
  * <p>
  * Created on: 06.01.11
@@ -37,9 +37,9 @@ import java.util.concurrent.TimeUnit;
  * @author Oliver Lorenz
  */
 @Beta
-final class IdlingOutAgingEntry implements AgingEntry {
+final class ComplexExpirableEntry implements ExpirableEntry {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleAgingEntry.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleExpirableEntry.class);
 
     private final long timestamp = System.currentTimeMillis();
     private final Object value;
@@ -51,7 +51,7 @@ final class IdlingOutAgingEntry implements AgingEntry {
 
     private long lastAccess = timestamp;
 
-    IdlingOutAgingEntry(@Nullable Object value, CacheExpiration expiration) {
+    ComplexExpirableEntry(@Nullable Object value, CacheExpiration expiration) {
         this.value = value;
         this.maxAge = expiration.getLifeTime();
         this.maxAgeUnit = Preconditions.checkNotNull(expiration.getLifeTimeUnit(), "MaxAgeUnit");

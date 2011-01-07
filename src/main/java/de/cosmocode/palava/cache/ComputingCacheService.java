@@ -58,20 +58,6 @@ public interface ComputingCacheService extends CacheService {
      *   All threads waiting on {@link #read(Serializable)} will be returned
      *   the given value.
      * </p>
-     */
-    @Override
-    void store(Serializable key, Object value, long maxAge, TimeUnit maxAgeUnit);
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     *   When a computation for the specified key is currently in progress,
-     *   that computation will be kept running but the specified value will
-     *   be used in favor of the already "old" value to be computed.
-     *   All threads waiting on {@link #read(Serializable)} will be returned
-     *   the given value.
-     * </p>
      *
      * @throws NullPointerException if key or expiration is null
      */
@@ -116,26 +102,6 @@ public interface ComputingCacheService extends CacheService {
      *   will receive the most current value.
      * </p>
      * 
-     * @since 2.4
-     * @param <V> the generic value type
-     * @param key the key under which the result will be found
-     * @param callable the computing callable
-     * @param maxAge the maximum age
-     * @param maxAgeUnit the unit of maxAge
-     * @return the computed value
-     * @throws NullPointerException if key, callable or maxAgeUnit is null
-     * @throws IllegalArgumentException if maxAge is negative
-     * @throws CancellationException if the computation was cancelled
-     * @throws ExecutionException if callable throws an {@link ExecutionException} it will be 
-     *         propagated directly, any other exception will be wrapped
-     */
-    <V> V computeAndStore(Serializable key, Callable<? extends V> callable, long maxAge, TimeUnit maxAgeUnit) 
-        throws CancellationException, ExecutionException;
-
-    /**
-     * Adds an object to the cache, using the given {@link CacheExpiration}.
-     *
-     * @see #computeAndStore(Serializable, Callable, long, TimeUnit)
      * @see #store(java.io.Serializable, Object, CacheExpiration)
      * @since 3.0
      * @param <V> the generic value type

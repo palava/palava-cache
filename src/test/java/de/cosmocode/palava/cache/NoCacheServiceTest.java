@@ -38,27 +38,21 @@ public final class NoCacheServiceTest extends CacheServiceTest {
     }
 
     @Override
-    public void testStoreWithMaxAgeZero() {
-        final CacheService unit = unit();
-        unit.store(1, "test", 0, TimeUnit.MINUTES);
-    }
-
-    @Override
     public void testStoreWithCacheExpirationEternal() {
         final CacheService unit = unit();
-        unit.store(1, "test", CacheExpiration.ETERNAL);
+        unit.store(1, "test", CacheExpirations.ETERNAL);
     }
 
     @Override
     public void testStoreWithIdleTime() throws InterruptedException {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", new CacheExpiration(0, 50, TimeUnit.MILLISECONDS));
+        unit.store(1, "TestEntry", new DefaultCacheExpiration(0, 50, TimeUnit.MILLISECONDS));
     }
 
     @Override
     public void testStoreWithLifeAndIdleTime() throws InterruptedException {
         final CacheService unit = unit();
-        unit.store(1, "TestEntry", new CacheExpiration(50, 50, TimeUnit.MILLISECONDS));
+        unit.store(1, "TestEntry", new DefaultCacheExpiration(50, 50, TimeUnit.MILLISECONDS));
     }
 
     @Override
