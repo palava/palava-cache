@@ -22,14 +22,33 @@
   </repositories>
   <dependencies>
     <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.cosmocode.palava</groupId>
+      <artifactId>palava-core</artifactId>
+      <version>[2.8.0,3)</version>
+    </dependency>
+    <dependency>
       <groupId>de.cosmocode.palava</groupId>
       <artifactId>palava-ipc</artifactId>
       <version>[1.0,2)</version>
     </dependency>
     <dependency>
+      <groupId>de.cosmocode</groupId>
+      <artifactId>cosmocode-commons</artifactId>
+      <version>[1.20,2)</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>r07</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>de.cosmocode</groupId>
