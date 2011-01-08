@@ -16,19 +16,20 @@
 
 package de.cosmocode.palava.cache;
 
-import com.google.common.annotations.Beta;
-import com.google.common.base.Preconditions;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.common.annotations.Beta;
+import com.google.common.base.Preconditions;
 
 /**
  * <p>
  * A CacheExpiration defines when an entry stored in a {@link CacheService} should expire.
  * It must be configured with a life time and an idle time.
  * More information about the configuration can be found in the constructor:
- * {@link #CacheExpiration(long, TimeUnit, long, TimeUnit)}.
+ * {@link #DefaultCacheExpiration(long, TimeUnit, long, TimeUnit)}.
  * </p>
  * <p>
  * Created on: 06.01.11
@@ -138,7 +139,7 @@ public final class DefaultCacheExpiration implements Serializable, CacheExpirati
      * Convenience constructor in the case that both life time and idle time are in the same TimeUnit.
      * This is equivalent to: {@code new CacheExpiration(lifeTime, unit, idleTime, unit)}.
      *
-     * @see #CacheExpiration(long, TimeUnit, long, TimeUnit)
+     * @see #DefaultCacheExpiration(long, TimeUnit, long, TimeUnit)
      * @param lifeTime the maximum amount of time for the cached value to live; 0 means forever
      * @param idleTime the maximum amount of time a value "survives" between reads; 0 means no idle checks
      * @param unit the TimeUnit for both lifeTime and idleTime
