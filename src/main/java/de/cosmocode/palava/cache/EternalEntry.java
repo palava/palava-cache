@@ -16,10 +16,11 @@
 
 package de.cosmocode.palava.cache;
 
-import com.google.common.base.Preconditions;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.TimeUnit;
+
+import com.google.common.base.Preconditions;
 
 /**
  * <p>

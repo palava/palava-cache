@@ -20,11 +20,12 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.Maps;
 
 import de.cosmocode.junit.LoggingRunner;
 import de.cosmocode.junit.UnitProvider;
