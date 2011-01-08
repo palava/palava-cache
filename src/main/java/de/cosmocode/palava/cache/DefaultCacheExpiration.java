@@ -148,61 +148,41 @@ public final class DefaultCacheExpiration implements Serializable, CacheExpirati
         this(lifeTime, unit, idleTime, unit);
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#isEternal()
-     */
     @Override
     public boolean isEternal() {
         return lifeTime == 0L && idleTime == 0L;
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getLifeTime()
-     */
     @Override
     public long getLifeTime() {
         return lifeTime;
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getLifeTimeUnit()
-     */
     @Override
     public TimeUnit getLifeTimeUnit() {
         return lifeTimeUnit;
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getLifeTimeIn(java.util.concurrent.TimeUnit)
-     */
     @Override
     public long getLifeTimeIn(final TimeUnit unit) {
         Preconditions.checkNotNull(unit, "Unit");
         return unit.convert(lifeTime, lifeTimeUnit);
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getIdleTime()
-     */
     @Override
     public long getIdleTime() {
         return idleTime;
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getIdleTimeUnit()
-     */
     @Override
     public TimeUnit getIdleTimeUnit() {
         return idleTimeUnit;
     }
 
-    /* (non-Javadoc)
-     * @see de.cosmocode.palava.cache.CacheExpiration#getIdleTimeIn(java.util.concurrent.TimeUnit)
-     */
     @Override
     public long getIdleTimeIn(final TimeUnit unit) {
         Preconditions.checkNotNull(unit, "Unit");
         return unit.convert(idleTime, idleTimeUnit);
     }
+    
 }
