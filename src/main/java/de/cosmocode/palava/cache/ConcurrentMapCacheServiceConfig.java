@@ -22,11 +22,11 @@ package de.cosmocode.palava.cache;
  * @version 2.4
  * @author Willi Schoenborn
  */
-final class ConcurrentMapCacheConfig {
+final class ConcurrentMapCacheServiceConfig {
     
-    public static final String MAX_AGE = CacheConfig.PREFIX + "maxAge";
+    public static final String KEY_MODE = CacheConfig.PREFIX + "keyMode";
 
-    public static final String MAX_AGE_UNIT = CacheConfig.PREFIX + "maxAgeUnit";
+    public static final String VALUE_MODE = CacheConfig.PREFIX + "valueMode";
     
     public static final String MAXIMUM_SIZE = CacheConfig.PREFIX + "maximumSize";
     
@@ -34,7 +34,9 @@ final class ConcurrentMapCacheConfig {
     
     public static final String CONCURRENCY_LEVEL = CacheConfig.PREFIX + "concurrencyLevel";
     
-    private ConcurrentMapCacheConfig() {
+    public static final String CRON_EXPRESSION = CacheConfig.PREFIX + "cronExpression";
+    
+    private ConcurrentMapCacheServiceConfig() {
         
     }
 

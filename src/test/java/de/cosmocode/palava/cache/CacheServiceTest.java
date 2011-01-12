@@ -223,6 +223,12 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         }
     }
 
+    /**
+     * Non-{@link Serializable} {@link Map}.
+     *
+     * @since 3.0
+     * @author Oliver Lorenz
+     */
     private static class NonSerializableMap extends ForwardingMap<Object, Object> {
 
         private final Map<Object, Object> original = Maps.newHashMap();
@@ -231,5 +237,7 @@ public abstract class CacheServiceTest implements UnitProvider<CacheService> {
         protected Map<Object, Object> delegate() {
             return original;
         }
+        
     }
+    
 }

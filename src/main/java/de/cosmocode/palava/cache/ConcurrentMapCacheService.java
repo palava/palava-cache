@@ -17,6 +17,7 @@
 package de.cosmocode.palava.cache;
 
 import java.io.Serializable;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import com.google.inject.name.Named;
 
 import de.cosmocode.palava.core.lifecycle.Initializable;
 import de.cosmocode.palava.core.lifecycle.LifecycleException;
+import de.cosmocode.palava.cron.CronService;
 
 /**
  * A {@link ConcurrentMap} backed {@link CacheService}.
@@ -36,7 +38,7 @@ import de.cosmocode.palava.core.lifecycle.LifecycleException;
  * @since 2.4
  * @author Willi Schoenborn
  */
-final class ConcurrentMapCacheService implements CacheService, Initializable {
+final class ConcurrentMapCacheService extends AbstractCacheService implements Initializable, Runnable {
     
     private static final Logger LOG = LoggerFactory.getLogger(ConcurrentMapCacheService.class);
 
@@ -47,8 +49,46 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
     private int initialCapacity = 16;
     private int concurrencyLevel = 16;
 
+    private final CronService cron;
+    private String cronExpression = "0 * * * * ?";
+    
     private ConcurrentMap<Serializable, ExpirableEntry> cache;
     
+    @Inject
+    ConcurrentMapCacheService(CronService cron) {
+        this.cron = Preconditions.checkNotNull(cron, "Cron");
+    }
+    
+    @Inject(optional = true)
+    void setKeyMode(@Named(ConcurrentMapCacheServiceConfig.KEY_MODE) ReferenceMode keyMode) {
+        this.keyMode = Preconditions.checkNotNull(keyMode, "KeyMode");
+    }
+
+    @Inject(optional = true)
+    void setValueMode(@Named(ConcurrentMapCacheServiceConfig.VALUE_MODE) ReferenceMode valueMode) {
+        this.valueMode = Preconditions.checkNotNull(valueMode, "ValueMode");
+    }
+
+    @Inject(optional = true)
+    void setMaximumSize(@Named(ConcurrentMapCacheServiceConfig.MAXIMUM_SIZE) int maximumSize) {
+        this.maximumSize = maximumSize;
+    }
+
+    @Inject(optional = true)
+    void setConcurrencyLevel(@Named(ConcurrentMapCacheServiceConfig.CONCURRENCY_LEVEL) int concurrencyLevel) {
+        this.concurrencyLevel = concurrencyLevel;
+    }
+
+    @Inject(optional = true)
+    void setInitialCapacity(@Named(ConcurrentMapCacheServiceConfig.INITIAL_CAPACITY) int initialCapacity) {
+        this.initialCapacity = initialCapacity;
+    }
+
+    @Inject(optional = true)
+    void setCronExpression(@Named(ConcurrentMapCacheServiceConfig.CRON_EXPRESSION) String cronExpression) {
+        this.cronExpression = Preconditions.checkNotNull(cronExpression, "CronExpression");
+    }
+
     @Override
     public void initialize() throws LifecycleException {
         final MapMaker maker = new MapMaker();
@@ -104,27 +144,17 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
         }
         
         this.cache = maker.makeMap();
+        
+        cron.schedule(this, cronExpression);
     }
-
-    @Inject(optional = true)
-    void setMaximumSize(@Named(ConcurrentMapCacheConfig.MAXIMUM_SIZE) int maximumSize) {
-        this.maximumSize = maximumSize;
-    }
-
-    @Inject(optional = true)
-    void setConcurrencyLevel(@Named(ConcurrentMapCacheConfig.CONCURRENCY_LEVEL) int concurrencyLevel) {
-        this.concurrencyLevel = concurrencyLevel;
-    }
-
-    @Inject(optional = true)
-    void setInitialCapacity(@Named(ConcurrentMapCacheConfig.INITIAL_CAPACITY) int initialCapacity) {
-        this.initialCapacity = initialCapacity;
-    }
-
+    
     @Override
-    public void store(Serializable key, Object value) {
-        Preconditions.checkNotNull(key, "Key");
-        store(key, value, CacheExpirations.ETERNAL);
+    public void run() {
+        for (Entry<Serializable, ExpirableEntry> entry : cache.entrySet()) {
+            if (entry.getValue().isExpired()) {
+                remove(entry.getKey());
+            }
+        }
     }
 
     @Override
@@ -142,7 +172,7 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
         if (entry == null) {
             return null;
         } else if (entry.isExpired()) {
-            remove(key);
+            cache.remove(key);
             return null;
         } else {
             return entry.<V>getValue();
@@ -161,4 +191,16 @@ final class ConcurrentMapCacheService implements CacheService, Initializable {
         cache.clear();
     }
 
+    @Override
+    public String toString() {
+        return "ConcurrentMapCacheService [" +
+                "keyMode=" + keyMode + ", " +
+                "valueMode=" + valueMode + ", " +
+                "maximumSize=" + maximumSize + ", " +
+                "initialCapacity=" + initialCapacity + ", " +
+                "concurrencyLevel=" + concurrencyLevel + ", " +
+                "cronExpression=" + cronExpression + 
+            "]";
+    }
+    
 }

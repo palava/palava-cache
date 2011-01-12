@@ -16,10 +16,25 @@
 
 package de.cosmocode.palava.cache;
 
-import com.google.inject.Guice;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
+import org.junit.Before;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
+
+import de.cosmocode.palava.concurrent.DefaultThreadProviderModule;
 import de.cosmocode.palava.core.DefaultRegistryModule;
+import de.cosmocode.palava.core.Framework;
+import de.cosmocode.palava.core.Palava;
+import de.cosmocode.palava.core.lifecycle.LifecycleException;
 import de.cosmocode.palava.core.lifecycle.LifecycleModule;
+import de.cosmocode.palava.core.lifecycle.Startable;
+import de.cosmocode.palava.cron.CronSchedulerModule;
+import de.cosmocode.palava.cron.DefaultCronServiceModule;
+import de.cosmocode.palava.jmx.FakeMBeanServerModule;
 
 /**
  * Tests {@link BackedComputingCacheService}.
@@ -27,16 +42,42 @@ import de.cosmocode.palava.core.lifecycle.LifecycleModule;
  * @since 2.4
  * @author Willi Schoenborn
  */
-public final class BackedComputingCacheServiceTest extends ComputingCacheServiceTest {
+public final class BackedComputingCacheServiceTest extends ComputingCacheServiceTest implements Startable {
 
+    private final Framework framework = Palava.newFramework(new AbstractModule() {
+        
+        @Override
+        protected void configure() {
+            install(new LifecycleModule());
+            install(new DefaultRegistryModule());
+            install(new DefaultThreadProviderModule());
+            install(new FakeMBeanServerModule());
+            install(new DefaultCronServiceModule());
+            install(new CronSchedulerModule());
+            bindConstant().annotatedWith(Names.named("executors.named.cron.minPoolSize")).to(5);
+            bindConstant().annotatedWith(Names.named("executors.named.cron.shutdownTimeout")).to(30L);
+            bindConstant().annotatedWith(Names.named("executors.named.cron.shutdownTimeoutUnit")).to(TimeUnit.SECONDS);
+            install(ConcurrentMapCacheServiceModule.annotatedWith(Real.class));
+            install(BackedComputingCacheServiceModule.backedBy(Real.class));
+        }
+        
+    }, new Properties());
+    
+    @Before
+    @Override
+    public void start() throws LifecycleException {
+        framework.start();
+    }
+    
     @Override
     public ComputingCacheService unit() {
-        return Guice.createInjector(
-                new LifecycleModule(),
-                new DefaultRegistryModule(),
-                ConcurrentMapCacheServiceModule.annotatedWith(Real.class),
-                BackedComputingCacheServiceModule.backedBy(Real.class)).
-            getInstance(ComputingCacheService.class);
+        return framework.getInstance(ComputingCacheService.class);
+    }
+
+    @After
+    @Override
+    public void stop() throws LifecycleException {
+        framework.stop();
     }
 
 }
