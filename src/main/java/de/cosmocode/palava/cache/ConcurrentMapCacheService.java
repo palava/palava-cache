@@ -109,7 +109,7 @@ final class ConcurrentMapCacheService extends AbstractCacheService implements In
                 break;
             }
             default: {
-                
+                throw new AssertionError("Default case matched " + keyMode);
             }
         }
 
@@ -128,7 +128,7 @@ final class ConcurrentMapCacheService extends AbstractCacheService implements In
                 break;
             }
             default: {
-                
+                throw new AssertionError("Default case matched " + valueMode);
             }
         }
         
