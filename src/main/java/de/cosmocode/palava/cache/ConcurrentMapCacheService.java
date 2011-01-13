@@ -28,6 +28,7 @@ import com.google.common.collect.MapMaker;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
+import de.cosmocode.commons.Strings;
 import de.cosmocode.palava.core.lifecycle.Initializable;
 import de.cosmocode.palava.core.lifecycle.LifecycleException;
 import de.cosmocode.palava.cron.CronService;
@@ -86,7 +87,7 @@ final class ConcurrentMapCacheService extends AbstractCacheService implements In
 
     @Inject(optional = true)
     void setCronExpression(@Named(ConcurrentMapCacheServiceConfig.CRON_EXPRESSION) String cronExpression) {
-        this.cronExpression = Preconditions.checkNotNull(cronExpression, "CronExpression");
+        this.cronExpression = Strings.checkNotBlank(cronExpression, "CronExpression");
     }
 
     @Override
