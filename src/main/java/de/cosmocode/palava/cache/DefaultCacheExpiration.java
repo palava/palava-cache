@@ -125,14 +125,12 @@ public final class DefaultCacheExpiration implements Serializable, CacheExpirati
      */
     public DefaultCacheExpiration(long lifeTime, TimeUnit lifeTimeUnit, long idleTime, TimeUnit idleTimeUnit) {
         Preconditions.checkArgument(lifeTime >= 0, "LifeTime must not be negative");
-        Preconditions.checkNotNull(lifeTimeUnit, "LifeTimeUnit");
         Preconditions.checkArgument(idleTime >= 0, "IdleTime must not be negative");
-        Preconditions.checkNotNull(idleTimeUnit, "IdleTimeUnit");
 
         this.lifeTime = lifeTime;
-        this.lifeTimeUnit = lifeTimeUnit;
+        this.lifeTimeUnit = Preconditions.checkNotNull(lifeTimeUnit, "LifeTimeUnit");
         this.idleTime = idleTime;
-        this.idleTimeUnit = idleTimeUnit;
+        this.idleTimeUnit = Preconditions.checkNotNull(idleTimeUnit, "IdleTimeUnit");
     }
 
     /**
