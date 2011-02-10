@@ -38,9 +38,11 @@ import de.cosmocode.junit.LoggingRunner;
 /**
  * Abstract test case for {@link ComputingCacheService}s.
  *
+ * @deprecated until the unit under test is removed
  * @since 2.4
  * @author Willi Schoenborn
  */
+@Deprecated
 @RunWith(LoggingRunner.class)
 public abstract class ComputingCacheServiceTest extends CacheServiceTest {
 

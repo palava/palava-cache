@@ -26,9 +26,11 @@ import java.util.concurrent.ExecutionException;
  * in form of {@link Callable}s to allow waiting for long running computations
  * instead of performing them concurrently.
  *
+ * @deprecated use {@link ComputingCacheRegion}
  * @since 2.4
  * @author Willi Schoenborn
  */
+@Deprecated
 public interface ComputingCacheService extends CacheService {
 
     /**

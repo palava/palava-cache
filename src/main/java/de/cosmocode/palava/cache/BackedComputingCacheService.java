@@ -24,9 +24,11 @@ import com.google.inject.Inject;
 /**
  * A {@link ComputingCacheService} which is backed by an ordinary {@link CacheService}.
  *
+ * @deprecated use {@link DefaultComputingCacheRegion}
  * @since 2.4
  * @author Willi Schoenborn
  */
+@Deprecated
 final class BackedComputingCacheService extends AbstractComputingCacheService {
 
     private final CacheService service;

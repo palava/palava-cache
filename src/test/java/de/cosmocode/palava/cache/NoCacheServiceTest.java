@@ -27,9 +27,11 @@ import org.junit.Assert;
  * This test overwrites some methods which forces a {@link CacheService} to actually
  * cache an object when {@link CacheService#store(Serializable, Object)} is called.
  *
+ * @deprecated until unit under test is removed
  * @since 2.3
  * @author Willi Schoenborn
  */
+@Deprecated
 public final class NoCacheServiceTest extends CacheServiceTest {
 
     @Override

@@ -40,9 +40,11 @@ import de.cosmocode.junit.UnitProvider;
  *   {@link #timeUnit()}.
  * </p>
  * 
+ * @deprecated until unit under test is removed
  * @author Markus Baumann
  * @author Oliver Lorenz (everything with life and idle time)
  */
+@Deprecated
 @RunWith(LoggingRunner.class)
 public abstract class CacheServiceTest implements UnitProvider<CacheService> {
 

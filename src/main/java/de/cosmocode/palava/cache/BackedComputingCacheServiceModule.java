@@ -22,13 +22,16 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
+import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
 /**
  * Binds {@link BackedComputingCacheService}s.
  *
+ * @deprecated use {@link Provides} methods
  * @author Willi Schoenborn
  */
+@Deprecated
 public final class BackedComputingCacheServiceModule {
     
     private BackedComputingCacheServiceModule() {

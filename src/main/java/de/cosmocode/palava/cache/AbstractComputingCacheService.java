@@ -39,9 +39,11 @@ import com.google.common.util.concurrent.ValueFuture;
 /**
  * Abstract base implementation for {@link ComputingCacheService}.
  *
+ * @deprecated use {@link ComputingCacheRegion}
  * @since 3.0
  * @author Willi Schoenborn
  */
+@Deprecated
 public abstract class AbstractComputingCacheService extends AbstractCacheService implements ComputingCacheService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

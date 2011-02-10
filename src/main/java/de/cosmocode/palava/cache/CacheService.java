@@ -24,10 +24,12 @@ import java.io.Serializable;
  *   so that cached objects expire after the given amount of time.
  * </p>
  *
+ * @deprecated use {@link CacheRegion}
  * @author Willi Schoenborn
  * @author Markus Baumann
  * @author Oliver Lorenz
  */
+@Deprecated
 public interface CacheService {
 
     /**

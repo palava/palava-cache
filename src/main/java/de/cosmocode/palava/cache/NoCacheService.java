@@ -23,9 +23,11 @@ import com.google.common.base.Preconditions;
 /**
  * Noop {@link CacheService} implementation.
  *
+ * @deprecated no replacement yet
  * @since 2.3
  * @author Willi Schoenborn
  */
+@Deprecated
 final class NoCacheService implements CacheService {
 
     @Override

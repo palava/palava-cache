@@ -21,9 +21,11 @@ import java.io.Serializable;
 /**
  * Abstract {@link CacheService} implementation.
  *
+ * @deprecated no replacement
  * @since 3.0
  * @author Willi Schoenborn
  */
+@Deprecated
 public abstract class AbstractCacheService implements CacheService {
 
     @Override

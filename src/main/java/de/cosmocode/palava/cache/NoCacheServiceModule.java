@@ -26,9 +26,11 @@ import com.google.inject.Singleton;
 /**
  * Binds {@link CacheService} to a noop implementation.
  *
+ * @deprecated no replacement yet
  * @since 2.3
  * @author Willi Schoenborn
  */
+@Deprecated
 public final class NoCacheServiceModule implements Module {
 
     @Override
